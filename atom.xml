@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://li-zhengyu.github.io/study.github.io/</id>
     <title>Study</title>
-    <updated>2022-04-19T04:22:39.640Z</updated>
+    <updated>2022-04-19T05:32:26.969Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://li-zhengyu.github.io/study.github.io/"/>
     <link rel="self" href="https://li-zhengyu.github.io/study.github.io/atom.xml"/>
@@ -10,6 +10,23 @@
     <logo>https://li-zhengyu.github.io/study.github.io/images/avatar.png</logo>
     <icon>https://li-zhengyu.github.io/study.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Study</rights>
+    <entry>
+        <title type="html"><![CDATA[关于NOIP]]></title>
+        <id>https://li-zhengyu.github.io/study.github.io/post/guan-yu-noip/</id>
+        <link href="https://li-zhengyu.github.io/study.github.io/post/guan-yu-noip/">
+        </link>
+        <updated>2022-04-19T05:04:19.000Z</updated>
+        <content type="html"><![CDATA[<p>什么是NOIP？<br>
+NOIP其实就是“全国青少年信息学奥林匹克联赛”，简称“全国信息学奥赛 ”，每年一届，每届由“中国计算机学会”统一组织，分为两个年龄组“初中组和高中组(普及组和提高组)“<br>
+NOIP证书有什么用？<br>
+答案是有加分报送的待遇<br>
+1、获得NOIP一等奖的应届高中毕业生，均具有保送进入高校就读的资格。<br>
+2、在数学、物理、化学、生物和信息5大学科竞赛中拿到前50名进入国家集训队的学生，可直接保送清华北大等名校。<br>
+附赠NOIP真题一套（08-18年，普及组及提高组）<br>
+链接: https://pan.baidu.com/s/1hYG9HcpGgylP3GK3iWJLog?pwd=z7x9<br>
+提取码: z7x9 复制这段内容后打开百度网盘手机App，操作更方便哦</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://li-zhengyu.github.io/study.github.io/post/hello-gridea/</id>

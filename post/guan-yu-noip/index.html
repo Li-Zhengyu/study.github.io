@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>标签列表 | Study</title>
+<title>关于NOIP | Study</title>
 <meta name="description" content="温故而知新">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -15,6 +15,12 @@
 <link rel="stylesheet" href="https://li-zhengyu.github.io/study.github.io//styles/main.css">
 
 
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
 <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
 
 
@@ -23,6 +29,7 @@
 
   </head>
   <body>
+  
     <nav class="navbar border fixed split-nav">
   <div class="nav-brand">
     <h3><a href="https://li-zhengyu.github.io/study.github.io/">Study</a></h3>
@@ -79,20 +86,56 @@
     <div id="top" class="row site">
       <div class="sm-12 md-8 col">
         <div class="paper">
-          <h2 class="tag-list-title">标签列表</h2>
-          <div class="row tags-container">
+          <article class="article">
+            <h1>关于NOIP</h1>
+            <p class="article-meta">
+              2022-04-19
+              
+                <a href="https://li-zhengyu.github.io/study.github.io/tag/yPryGM8oH/" class="badge secondary">
+                  NOIP
+                </a>
+              
+            </p>
             
-              <a href="https://li-zhengyu.github.io/study.github.io/tag/yPryGM8oH/" class="badge secondary">
-                NOIP
-              </a>
-            
-              <a href="https://li-zhengyu.github.io/study.github.io/tag/Aw6IR7PaI/" class="badge success">
-                Gridea
-              </a>
-            
-          </div>
+            <div class="post-content">
+              <p>什么是NOIP？<br>
+NOIP其实就是“全国青少年信息学奥林匹克联赛”，简称“全国信息学奥赛 ”，每年一届，每届由“中国计算机学会”统一组织，分为两个年龄组“初中组和高中组(普及组和提高组)“<br>
+NOIP证书有什么用？<br>
+答案是有加分报送的待遇<br>
+1、获得NOIP一等奖的应届高中毕业生，均具有保送进入高校就读的资格。<br>
+2、在数学、物理、化学、生物和信息5大学科竞赛中拿到前50名进入国家集训队的学生，可直接保送清华北大等名校。<br>
+附赠NOIP真题一套（08-18年，普及组及提高组）<br>
+链接: https://pan.baidu.com/s/1hYG9HcpGgylP3GK3iWJLog?pwd=z7x9<br>
+提取码: z7x9 复制这段内容后打开百度网盘手机App，操作更方便哦</p>
+
+            </div>
+          </article>
         </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="https://li-zhengyu.github.io/study.github.io/post/hello-gridea/">
+                <h3 class="post-title">
+                  Hello Gridea
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
       </div>
+
       <div class="sm-12 md-4 col sidebar">
   <div class="paper info-container">
     <img src="https://li-zhengyu.github.io/study.github.io//images/avatar.png?v=1650346299204" class="no-responsive avatar">
@@ -149,7 +192,7 @@
           NOIP
         </a>
       
-        <a href="https://li-zhengyu.github.io/study.github.io/tag/Aw6IR7PaI/" class="badge secondary">
+        <a href="https://li-zhengyu.github.io/study.github.io/tag/Aw6IR7PaI/" class="badge success">
           Gridea
         </a>
       
@@ -159,7 +202,8 @@
     Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://li-zhengyu.github.io/study.github.io//atom.xml" target="_blank">RSS</a>
   </div>
 </div>
-  
+
+
     </div>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -171,6 +215,29 @@ AOS.init();
 hljs.initHighlightingOnLoad()
 
 </script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '9e7f293d94c7d3568ae5',
+        clientSecret: '0f6e5b5156e1fe50a409488005a47941f5ee7fbc',
+        repo: 'gitalk.github.io',
+        owner: 'Li-Zhengyu',
+        admin: ['Li-Zhengyu'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
 
 
 
