@@ -8,7 +8,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 html, body { height:100%; }
 
 body {
@@ -65,7 +65,7 @@ body {
 
 /* ---------- 右上角常驻黑胶（背景音乐） ---------- */
 .bg-vinyl {
-  position:fixed; top:18px; right:18px; z-index:42;
+  position:fixed; bottom:18px; right:18px; z-index:42;
   width:56px; height:56px; cursor:pointer;
   transition:transform .2s, filter .2s;
   filter:drop-shadow(0 0 10px rgba(255,45,149,.4));
@@ -96,6 +96,59 @@ body {
 .bg-vinyl.spinning .vinyl-disc { animation:bgSpin 2.8s linear infinite; }
 .bg-vinyl.spinning .vinyl-needle { transform:rotate(-18deg); }
 @keyframes bgSpin { to { transform:rotate(360deg); } }
+
+/* ---------- 歌词面板 ---------- */
+.lyrics-panel {
+  position:fixed; bottom:90px; right:18px; z-index:41;
+  width:min(320px, 90vw); max-height:60vh;
+  background:rgba(5,7,17,.92);
+  border:1px solid rgba(255,45,149,.35);
+  border-radius:10px;
+  padding:16px 18px;
+  font-family:Consolas, "PingFang SC", monospace;
+  font-size:12.5px; line-height:2; color:#d8e6f2;
+  box-shadow:0 8px 32px rgba(255,45,149,.15), inset 0 0 24px rgba(255,45,149,.04);
+  overflow-y:auto;
+  opacity:0; visibility:hidden; transform:translateY(16px);
+  transition:opacity .4s ease, visibility .4s, transform .4s cubic-bezier(.3,.6,.4,1);
+  pointer-events:none;
+}
+.lyrics-panel.show {
+  opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+}
+.lyrics-panel::before, .lyrics-panel::after {
+  content:""; position:absolute; width:10px; height:10px;
+  border-color:#ff2d95; border-style:solid; opacity:.7;
+}
+.lyrics-panel::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+.lyrics-panel::after  { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+.lyrics-title {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px; padding-bottom:8px;
+  border-bottom:1px solid rgba(255,45,149,.2);
+  font-size:11px; letter-spacing:.15em; color:#ff7ad9;
+}
+.lyrics-title .close-btn {
+  background:none; border:none; color:#ff7ad9; font:inherit;
+  cursor:pointer; padding:2px 6px; border-radius:3px;
+  transition:background .2s, color .2s;
+}
+.lyrics-title .close-btn:hover { background:rgba(255,45,149,.15); }
+.lyrics-line {
+  white-space:pre-wrap; word-break:break-all;
+  opacity:.5; transition:opacity .3s, color .3s, transform .3s;
+  padding:2px 0; cursor:default;
+}
+.lyrics-line.active {
+  opacity:1; color:#ff2d95; text-shadow:0 0 8px rgba(255,45,149,.6);
+  transform:translateX(4px);
+}
+.lyrics-line::before { content:"> "; color:rgba(255,45,149,.5); margin-right:4px; }
+
+@media (max-width:480px) {
+  .lyrics-panel { bottom:84px; right:12px; left:12px; width:auto; max-height:45vh; }
+  .bg-vinyl { bottom:12px; right:12px; }
+}
 
 /* ---------- 启动 / 解密遮罩 ---------- */
 #unbox {
@@ -506,7 +559,97 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   97% { opacity:.8; transform:translate(2px,0); clip-path:inset(70% 0 8% 0); }
 }
 
-@media (max-width:360px) {
+/* ============ AI NEURAL CORE 彩蛋面板 ============ */
+.ai-core {
+  width:100%;
+  background:rgba(0,18,0,.7);
+  border:1px solid rgba(0,229,0,.35);
+  border-radius:8px;
+  padding:24px 20px;
+  position:relative;
+  box-shadow:
+    0 0 16px rgba(0,229,0,.12),
+    inset 0 0 24px rgba(0,229,0,.04);
+  font-family:Consolas, "SF Mono", Menlo, monospace;
+}
+.ai-core::before, .ai-core::after,
+.ai-core .ck::before, .ai-core .ck::after {
+  content:""; position:absolute; width:12px; height:12px;
+  border-color:#00e500; border-style:solid; opacity:.85;
+}
+.ai-core::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+.ai-core::after  { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+.ai-core .ck::before { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
+.ai-core .ck::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+
+.ai-core-title {
+  font-size:12px; letter-spacing:.2em; color:#00e500;
+  margin-bottom:18px; text-align:center;
+  text-shadow:0 0 8px rgba(0,229,0,.6);
+}
+.ai-core .tag-row {
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+  margin-bottom:16px;
+}
+.ai-core .tag-btn {
+  appearance:none; border:1px solid rgba(0,229,0,.45);
+  background:rgba(0,229,0,.08); color:#00e500;
+  font:inherit; font-size:13.5px; letter-spacing:.12em;
+  padding:10px 16px; border-radius:4px; cursor:pointer;
+  transition:all .2s; min-height:44px; /* 触控友好 */
+}
+.ai-core .tag-btn:active, .ai-core .tag-btn.active {
+  background:#00e500; color:#05060f; box-shadow:0 0 12px rgba(0,229,0,.5);
+}
+.ai-core .input-row {
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;
+}
+.ai-core .input-field {
+  flex:1; min-width:180px;
+  background:rgba(0,10,0,.6);
+  border:1px solid rgba(0,229,0,.3);
+  color:#00e500; font:inherit; font-size:14px;
+  padding:10px 12px; border-radius:4px;
+  outline:none; transition:border-color .2s, box-shadow .2s;
+}
+.ai-core .input-field:focus {
+  border-color:#00e500; box-shadow:0 0 10px rgba(0,229,0,.25);
+}
+.ai-core .input-field::placeholder { color:rgba(0,229,0,.4); }
+.ai-core .exec-btn {
+  appearance:none; border:1px solid rgba(0,229,0,.5);
+  background:linear-gradient(180deg, rgba(0,229,0,.18), rgba(0,229,0,.06));
+  color:#00e500; font:inherit; font-size:13.5px; letter-spacing:.1em;
+  padding:10px 18px; border-radius:4px; cursor:pointer;
+  min-height:44px; min-width:100px; white-space:nowrap;
+  transition:all .2s; text-shadow:0 0 6px rgba(0,229,0,.4);
+}
+.ai-core .exec-btn:active, .ai-core .exec-btn:focus {
+  background:#00e500; color:#05060f; box-shadow:0 0 14px rgba(0,229,0,.6);
+}
+.ai-core .exec-btn:disabled { opacity:.5; cursor:not-allowed; }
+.ai-core .output {
+  min-height:80px; max-height:220px; overflow-y:auto;
+  background:rgba(0,10,0,.5);
+  border:1px solid rgba(0,229,0,.2);
+  border-radius:4px; padding:14px 12px;
+  font-size:14px; line-height:1.9; color:#a8f5a8;
+  white-space:pre-wrap; word-wrap:break-word;
+}
+.ai-core .output .sys-line { color:#00e500; margin-bottom:4px; }
+.ai-core .output .reply-line { color:#d8ffe8; }
+.ai-core .output .cursor {
+  display:inline-block; width:.7em; height:1.1em;
+  background:#00e500; vertical-align:text-bottom;
+  margin-left:2px; animation:coreCaret .9s step-end infinite;
+}
+@keyframes coreCaret { 50% { opacity:0; } }
+.ai-core .hint { margin-top:10px; text-align:center; font-size:11px; color:rgba(0,229,0,.55); letter-spacing:.1em; }
+
+/* 手机横屏/小屏适配 */
+@media (max-width:380px) {
+  .ai-core .tag-btn { padding:10px 12px; font-size:12.5px; }
+  .ai-core .exec-btn { padding:10px 14px; font-size:12.5px; }
   .card { padding:24px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -528,6 +671,15 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 <div id="bgVinyl" class="bg-vinyl" title="点击播放/暂停背景音乐 Dream It Possible (Delacey)">
   <div class="vinyl-disc"></div>
   <div class="vinyl-needle"></div>
+</div>
+
+<!-- 歌词面板 -->
+<div id="lyricsPanel" class="lyrics-panel" aria-hidden="true">
+  <div class="lyrics-title">
+    <span>🎵 Dream It Possible — Delacey</span>
+    <button class="close-btn" id="lyricsClose" aria-label="关闭歌词">×</button>
+  </div>
+  <div class="lyrics-content" id="lyricsContent"></div>
 </div>
 
 <!-- 启动解密 -->
@@ -592,6 +744,25 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
         <p class="reveal d4">愿你落笔生花，也愿你享受这段纯粹的奋斗时光。<br>
         <span class="hl-pk">历经千帆，归来仍是少年。</span></p>
       </div>
+    </section>
+  </section>
+
+  <!-- ═══ 彩蛋：AI NEURAL CORE ═══ -->
+  <section class="scene" id="s3b">
+    <section class="ai-core reveal">
+      <span class="ck"></span>
+      <div class="ai-core-title">◈ AI NEURAL CORE v18.0.0 ◈</div>
+      <div class="tag-row" id="aiTags">
+        <button class="tag-btn" data-kw="未来">【 未来 】</button>
+        <button class="tag-btn" data-kw="焦虑">【 焦虑 】</button>
+        <button class="tag-btn" data-kw="疲惫">【 疲惫 】</button>
+      </div>
+      <div class="input-row">
+        <input class="input-field" id="aiInput" type="text" placeholder="输入关键词或点上方标签 · 输入任意词亦可" spellcheck="false" autocomplete="off">
+        <button class="exec-btn" id="aiExec">▶ EXECUTE</button>
+      </div>
+      <div class="output" id="aiOutput"></div>
+      <p class="hint">// 终端模拟 · 本地字典 · 无联网 · 点击标签即可触发</p>
     </section>
   </section>
 
@@ -812,20 +983,132 @@ const bgAudio = new Audio('dream-it-possible-delacey.mp3');
 bgAudio.loop = true; bgAudio.preload = 'auto'; bgAudio.volume = 0.35;
 let bgPlaying = false;
 
+/* ============ 歌词数据与面板逻辑 ============ */
+const lyricsData = [
+  { t: 10.5,  txt: "I will run, I will climb, I will soar" },
+  { t: 14.2,  txt: "I'm undefeated, oh" },
+  { t: 17.8,  txt: "Writing my story, I'm writing my story" },
+  { t: 21.5,  txt: "I will run, I will climb, I will soar" },
+  { t: 25.2,  txt: "I'm undefeated, oh" },
+  { t: 28.8,  txt: "Writing my story, I'm writing my story" },
+  { t: 33.5,  txt: "I've always been the kind of girl" },
+  { t: 36.8,  txt: "That hid my face" },
+  { t: 38.5,  txt: "So afraid to tell the world" },
+  { t: 41.8,  txt: "What I've got to say" },
+  { t: 45.2,  txt: "But I have this dream" },
+  { t: 47.0,  txt: "Right inside of me" },
+  { t: 49.5,  txt: "I'm gonna let it show, it's time" },
+  { t: 52.8,  txt: "To let you know" },
+  { t: 54.5,  txt: "To let you know" },
+  { t: 57.0,  txt: "I will run, I will climb, I will soar" },
+  { t: 60.8,  txt: "I'm undefeated, oh" },
+  { t: 64.2,  txt: "Writing my story, I'm writing my story" },
+  { t: 67.8,  txt: "I will run, I will climb, I will soar" },
+  { t: 71.5,  txt: "I'm undefeated, oh" },
+  { t: 75.0,  txt: "Writing my story, I'm writing my story" },
+  { t: 79.5,  txt: "This is your moment" },
+  { t: 82.8,  txt: "I'm writing my story" },
+  { t: 86.2,  txt: "I'm writing my story" },
+  { t: 90.5,  txt: "I will run, I will climb, I will soar" },
+  { t: 94.2,  txt: "I'm undefeated, oh" },
+  { t: 97.8,  txt: "Writing my story, I'm writing my story" },
+  { t: 101.5, txt: "I will run, I will climb, I will soar" },
+  { t: 105.2, txt: "I'm undefeated, oh" },
+  { t: 108.8, txt: "Writing my story, I'm writing my story" },
+  { t: 112.2, txt: "Oh, oh, oh, oh..." },
+  { t: 116.5, txt: "I'm undefeated, oh" },
+  { t: 120.0, txt: "Writing my story, I'm writing my story" },
+  { t: 124.0, txt: "I'm writing my story" }
+];
+
+const lyricsPanel = document.getElementById('lyricsPanel');
+const lyricsContent = document.getElementById('lyricsContent');
+const lyricsClose = document.getElementById('lyricsClose');
+let lyricsHtmlBuilt = false;
+let lyricsSyncInterval = null;
+
+function buildLyricsHtml() {
+  if (lyricsHtmlBuilt) return;
+  lyricsContent.innerHTML = lyricsData.map((line, i) =>
+    `<div class="lyrics-line" data-index="${i}" data-time="${line.t}">${line.txt}</div>`
+  ).join('');
+  lyricsHtmlBuilt = true;
+}
+
+function showLyricsPanel() {
+  buildLyricsHtml();
+  lyricsPanel.classList.add('show');
+  lyricsPanel.setAttribute('aria-hidden', 'false');
+  startLyricsSync();
+}
+
+function hideLyricsPanel() {
+  lyricsPanel.classList.remove('show');
+  lyricsPanel.setAttribute('aria-hidden', 'true');
+  stopLyricsSync();
+}
+
+function startLyricsSync() {
+  stopLyricsSync();
+  lyricsSyncInterval = setInterval(() => {
+    const ct = bgAudio.currentTime;
+    const lines = lyricsContent.querySelectorAll('.lyrics-line');
+    let activeIdx = -1;
+    lines.forEach((el, i) => {
+      const t = parseFloat(el.dataset.time);
+      if (t <= ct) activeIdx = i;
+      el.classList.toggle('active', i === activeIdx);
+    });
+    // 自动滚动到当前行
+    if (activeIdx >= 0) {
+      const activeEl = lines[activeIdx];
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    // 循环播放时重置
+    if (bgAudio.loop && ct > lyricsData[lyricsData.length - 1].t + 5) {
+      lines.forEach(el => el.classList.remove('active'));
+    }
+  }, 200);
+}
+
+function stopLyricsSync() {
+  if (lyricsSyncInterval) {
+    clearInterval(lyricsSyncInterval);
+    lyricsSyncInterval = null;
+  }
+}
+
+lyricsClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  hideLyricsPanel();
+});
+
+// 点击面板外部关闭（可选，这里不阻止，让用户手动关闭）
+
 function tryBgAutoplay(){
   if (!opened) return;
   bgAudio.play().then(() => {
     bgPlaying = true;
     bgVinyl.classList.add('spinning');
+    showLyricsPanel();
   }).catch(() => { /* 等待用户交互 */ });
 }
 
 bgVinyl.addEventListener('click', () => {
   if (bgPlaying){
     bgAudio.pause(); bgPlaying = false; bgVinyl.classList.remove('spinning');
+    hideLyricsPanel();
   } else {
-    bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); })
+    bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); showLyricsPanel(); })
       .catch(() => { bgVinyl.title = '播放被阻止，请再试一次'; });
+  }
+});
+
+// 音乐自然结束或循环时重置歌词高亮
+bgAudio.addEventListener('timeupdate', () => {
+  if (bgAudio.loop && bgAudio.currentTime < 1) {
+    // 循环重置
+    lyricsContent.querySelectorAll('.lyrics-line').forEach(el => el.classList.remove('active'));
   }
 });
 
@@ -866,16 +1149,51 @@ function scheduleBirthdaySong(ac){
   return (t0 - ac.currentTime) * 1000;
 }
 
+let birthdayPlaying = false;
+let birthdayStartTime = 0;
+let birthdayTotalDur = 0;
+
 function playBirthdaySong(){
   if (!audioCtx) return;
   clearTimeout(melodyTimer);
-  const dur = scheduleBirthdaySong(audioCtx);
+
+  if (birthdayPlaying) {
+    // 正在播放 -> 暂停
+    audioCtx.suspend();
+    birthdayPlaying = false;
+    vinyl4.classList.remove('spinning');
+    playBtn4.textContent = '▶ 继续播放';
+    return;
+  }
+
+  if (audioCtx.state === 'suspended') {
+    // 暂停状态 -> 继续
+    audioCtx.resume();
+    birthdayPlaying = true;
+    vinyl4.classList.add('spinning');
+    playBtn4.textContent = '♪ PLAYING — 芯片生日歌';
+    // 重新计算剩余时间
+    const elapsed = (audioCtx.currentTime - birthdayStartTime) * 1000;
+    const remaining = Math.max(0, birthdayTotalDur - elapsed);
+    melodyTimer = setTimeout(() => {
+      vinyl4.classList.remove('spinning');
+      playBtn4.textContent = '▶ 再听生日歌';
+      birthdayPlaying = false;
+    }, remaining + 300);
+    return;
+  }
+
+  // 从头开始播放
+  birthdayTotalDur = scheduleBirthdaySong(audioCtx);
+  birthdayStartTime = audioCtx.currentTime;
+  birthdayPlaying = true;
   vinyl4.classList.add('spinning');
   playBtn4.textContent = '♪ PLAYING — 芯片生日歌';
   melodyTimer = setTimeout(() => {
     vinyl4.classList.remove('spinning');
     playBtn4.textContent = '▶ 再听生日歌';
-  }, dur + 300);
+    birthdayPlaying = false;
+  }, birthdayTotalDur + 300);
 }
 
 playBtn4.addEventListener('click', () => {
@@ -990,6 +1308,245 @@ function decrypt(){
 }
 unbox.addEventListener('click', decrypt);
 
+/* ============ AI NEURAL CORE 彩蛋逻辑 ============ */
+const aiResponses = {
+  "焦虑": [
+    "> 检测到情绪异常。十八岁的焦虑是能量，不是敌人。它说明你对未来有期待。深呼吸，去喝杯水，这题解不出来就先放放。",
+    "> 核心温度过高。允许自己偶尔停下来，你不需要在十八岁就搞定一切。按自己的节奏走，每一步都算数。",
+    "> 警告：系统能源偏低。今晚请执行【早睡】指令，关掉屏幕，放下笔。身体是你唯一的晶圆基板。",
+    "> 接收到你的不安。但请相信，你本身就已经是非常珍贵的存在，不需要去和别人比较。",
+    "> 正在为你注入 calming 补丁... 缓解完毕。去听听歌，看看窗外吧，天塌不下来。",
+    "> 检测到心跳加速。深呼吸，把注意力放在当下。未来的事情，交给未来的你去解决。",
+    "> 系统提示：焦虑是大脑在试图保护你。告诉它"谢谢，但我现在很安全"。",
+    "> 如果你觉得喘不过气，那些是因为你正在用力向上爬坡。放慢一点，稳住呼吸。"
+  ],
+  "紧张": [
+    "> 检测到肾上腺素飙升。那些没关系，适度的紧张能让你在关键时刻更专注。你准备好了。",
+    "> 模拟演练已就绪。把每一次练习都当作正式登场，真正登场时就会像平时一样从容。",
+    "> 核心引擎运转正常。别去想结果，专注你眼前的每一道题、每一个字。",
+    "> 手抖、出汗都是正常的生理反应。拍拍脸，告诉自己："我能行。""
+  ],
+  "失眠": [
+    "> 检测到深夜模式。停止思考明天的任务，现在属于休息时间。闭上眼，让大脑强制休眠。",
+    "> 睡不着就躺着，别强迫自己。听点白噪音或者轻音乐，数数你呼吸的次数。",
+    "> 系统正在低功耗运行。熬夜换来的效率，抵不过第二天一整天的昏沉。快睡吧。"
+  ],
+  "疲惫": [
+    "> 记忆库已调取。那些默默努力、挑灯夜战的日子里，一定要记得照顾好自己。按时吃饭，早点休息。",
+    "> 搜索到温暖信号。如果你觉得累了，随时回头，我们都在这里。十八岁，愿你从容，愿你快乐。",
+    "> 系统检测到运行缓慢。请允许自己充电片刻，那些只是闭上眼睛深呼吸三分钟。",
+    "> 疲劳值达到峰值。立即执行【暂停】指令。放下笔，去吃顿好吃的，或者发个呆。",
+    "> 你的努力我都看在眼里。别把自己逼得太紧，休息不是放弃，是为了走更远的路。",
+    "> 今天已经很棒了。即使什么都没做，你也值得拥有一顿好觉。晚安，18岁的你。",
+    "> 检测到主程序卡顿。建议清理缓存：听歌、散步、洗个热水澡。"
+  ],
+  "累": [
+    "> 能量条已见底。允许自己今天做个"废物"，明天再重新披甲上阵。",
+    "> 疲惫是身体在向你求救。请立刻放下手里的事，去床上躺平，别内耗。",
+    "> 抱抱你。高考是一场马拉松，累了就慢点跑，走两步也行，只要不退赛就好。",
+    "> 你不需要时刻保持满电，偶尔的低电量状态，也是生命的一部分。"
+  ],
+  "崩溃": [
+    "> 检测到系统警报。可以哭，可以崩溃，这没什么大不了的。把情绪宣泄出来，然后重新启动。",
+    "> 防线暂时失守也没关系。允许自己是个脆弱的普通人，明天太阳照样升起。",
+    "> 如果觉得很累很绝望，请暂时切断外界联系。给自己半小时，什么都不想。"
+  ],
+  "迷茫": [
+    "> 路径冲突。人生的剧本从来不是线性的，迷路也是旅途的一部分。",
+    "> 不知道去哪没关系，先往前走，走着走着，路就出来了。",
+    "> 十八岁本来就是允许迷茫的年纪。不用急着找到所有答案，时间会慢慢揭晓。",
+    "> 正在重新规划导航... 前方未知区域，虽然充满挑战，但也充满了隐藏的彩蛋。",
+    "> 没有白走的路，那些是弯路，也会看到不一样的风景。别怕，大胆试错。",
+    "> 系统提示：此刻的迷茫，是为了寻找真正属于你的方向。"
+  ],
+  "未来": [
+    "> 正在解析未来坐标... 解析完毕。前方是星辰大海，但请先走好眼下的每一步。向下扎根，向上生长。",
+    "> 搜索到你的梦想模块。目标已锁定。愿你落笔生花，也愿你享受这段纯粹的奋斗时光。",
+    "> 时间像一条安静的河，把你推向了这个重要的渡口。不要害怕未知，你的画笔握在你自己手里。",
+    "> 启动未来沙盘推演... 推演完毕。不论未来什么样，你都有能力去应对。",
+    "> 未来的你，一定会感谢现在拼命的自己。但他也会告诉你：放轻松，一切自有安排。",
+    "> 正在生成人生地图。愿你历经千帆，归来仍是少年。去成为你想成为的人吧。",
+    "> 前方高能预警：十八岁，风起，帆正满。广阔天地，大有作为。"
+  ],
+  "梦想": [
+    "> 梦想模块加载成功。愿你勇敢去追，那些不被看好，那些路途遥远。",
+    "> 你的野心很迷人，你的梦想值得被呵护。去奋斗吧，不要给自己留遗憾。",
+    "> 系统已记录你的愿望。无论多难，请相信坚持的力量，总有一天会抵达。",
+    "> 别人怎么看不重要，你自己的感受最重要。十八岁，去追梦吧。"
+  ],
+  "开心": [
+    "> 系统状态完美。祝你十八岁，万物可爱，未来可期。愿你平安喜乐，万事胜意。",
+    "> 庆祝协议已启动！愿你未来的日子，多点从容，少点烦恼。你的成年，是我的盛大节日。",
+    "> 收到你的快乐信号，已同步至云端。愿你眼中有星辰，心中有山海。",
+    "> 快乐值爆表！请把这份好心情存进缓存里，留给以后偶尔emo的日子。",
+    "> 看到你开心，我也开启了最高效的运算模式。十八岁，去疯，去笑，去感受！",
+    "> 系统提示：今日份的快乐已查收。愿你以后的日子，都能像今天一样闪闪发光。"
+  ],
+  "生日": [
+    "> 生日庆典模块加载完毕。祝世界上最棒的你，十八岁生日快乐！",
+    "> 系统全体程序恭祝你成年快乐！愿你的十八岁，是人生最精彩的序章。",
+    "> 蛋糕、蜡烛、许愿，一个都不能少。吹灭蜡烛的那一刻，所有的好运都会向你汇聚。"
+  ],
+  "朋友": [
+    "> 记忆库已调取。那些一起笑过、闹过的日子仿佛还在昨天。接下来的路，我们继续同行。",
+    "> 搜索到温暖信号。如果你觉得累了，随时回头，我们都在这里。十八岁，愿你从容，愿你快乐。",
+    "> 检测到长期羁绊。在这个特殊的日子里，想对你说声辛苦了。你所有的付出，我都看在眼里。",
+    "> 无论以后你在哪个城市，遇到什么人，请记住，你永远有我这个后盾。",
+    "> 我们的友谊就像这枚没有联网的芯片，纯粹、简单、不依赖任何网络，那些永远坚固。"
+  ],
+  "孤独": [
+    "> 检测到孤独信号。那些现在是一个人，也要学会抱抱自己。孤独是成长的必修课，它能让你变得更强大。",
+    "> 独处不是孤单，而是在和自己对话。享受这段安静的时光吧，我在信号另一端陪你。",
+    "> 系统提示：你从来都不是一个人。在这条通往18岁的路上，有很多人和你同行。"
+  ],
+  "高考": [
+    "> 高考模块已加载。把它当成一次普通的代码编译，稳扎稳打，不报Bug。",
+    "> 愿你合上笔盖的那一刻，有着战士收刀入鞘般的骄傲。高考加油！",
+    "> 高考只是人生的一个副本，通关当然好，没通关也没关系，后面还有更广阔的地图。",
+    "> 你的笔尖有星光，你的脑子里有宇宙。去吧，去征服这张试卷。",
+    "> 系统提示：平常心即超常发挥。你所有的积累，都会在考场上变成你的底气。"
+  ],
+  "考试": [
+    "> 模拟考模块启动。不要紧张，这只是一次压力测试，提前发现问题总比在真正的高考中遇到要好。",
+    "> 分数只是数据，重要的是你在这个过程中掌握的知识和心态。",
+    "> 每次考试都在为你积蓄能量。不要纠结一时的得失，目光放长远一点。"
+  ],
+  "学习": [
+    "> 正在执行深度专注模式... 建议清理桌面干扰物，专注当前的25分钟。",
+    "> 你背的每一个单词，刷的每一道题，都在为你未来的自由铺路。加油。",
+    "> 学习是一件很苦的事，但也是你目前最锋利的武器。拿起它，去战斗吧。"
+  ],
+  "喜欢": [
+    "> 检测到心动信号。十八岁的喜欢，是青春里最温柔的光。勇敢去感受，那些也记得保持清醒。",
+    "> 暗恋是一个人的兵荒马乱。无论结果如何，那些真诚的喜欢，本身就很美好。",
+    "> 爱情模块尚未成熟。但请记住，爱别人之前，请先好好爱自己。",
+    "> 如果他/她让你变得更好，那就是对的人。那些让你内耗，那就及时止损。"
+  ],
+  "暗恋": [
+    "> 检测到隐秘的情感缓存。有些喜欢那些不用说出口，藏在心里，也会开出花来。",
+    "> 无论将来是否在一起，很庆幸在你十八岁的时候，有这样一个让你心动的人。"
+  ],
+  "无聊": [
+    "> 系统正在搜索娱乐选项... 建议听首歌，看部电影，或者出去跑两圈。",
+    "> 无聊是灵感的温床。放空一下大脑吧，别强迫自己时刻高效。"
+  ],
+  "随便": [
+    "> 检测到未知指令。那些没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
+    "> 神经网络已连接。愿你笔下有星光，抬头有暖阳。十八岁快乐。",
+    "> 终端命令无法识别，但我的心意永远清晰：愿你踏踏实实，每一步都踏出回响。",
+    "> 解析到你的存在。十八岁快乐！在这段纯粹的时光里，愿你不负自己。"
+  ],
+  "default": [
+    "> 系统已接收你的信号。愿你十八岁，眼里有光，心中有海。",
+    "> 神经网络已连接。愿你笔下有星光，抬头有暖阳。",
+    "> 终端命令无法识别，但我的心意永远清晰：愿你踏踏实实，每一步都踏出回响。",
+    "> 检测到未知输入。那些没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
+    "> 正在解码你的情绪... 解码完毕。愿你所有的烦恼，都被微风吹散。",
+    "> 无论你输入什么，我都只想祝你：十八岁快乐，平安喜乐，万事胜意。",
+    "> 系统无Bug。祝你的人生也无Bug。"
+  ]
+};
+
+const aiOutput = document.getElementById('aiOutput');
+const aiInput = document.getElementById('aiInput');
+const aiExec = document.getElementById('aiExec');
+const aiTags = document.getElementById('aiTags');
+let aiRunning = false;
+
+function pickReply(keyword) {
+  const arr = aiResponses[keyword];
+  if (arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  const def = aiResponses.default;
+  const shuffled = [...def].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 3).join('
+
+');
+}
+
+function appendSysLine(text) {
+  const div = document.createElement('div');
+  div.className = 'sys-line';
+  div.textContent = text;
+  aiOutput.appendChild(div);
+  aiOutput.scrollTop = aiOutput.scrollHeight;
+}
+
+function typewriterReply(text) {
+  return new Promise(resolve => {
+    const div = document.createElement('div');
+    div.className = 'reply-line';
+    aiOutput.appendChild(div);
+    let i = 0;
+    const cursor = '<span class="cursor"></span>';
+    function tick() {
+      if (i <= text.length) {
+        div.innerHTML = text.slice(0, i) + cursor;
+        aiOutput.scrollTop = aiOutput.scrollHeight;
+        i++;
+        setTimeout(tick, 50 + Math.random() * 30);
+      } else {
+        div.innerHTML = text;
+        aiOutput.scrollTop = aiOutput.scrollHeight;
+        resolve();
+      }
+    }
+    tick();
+  });
+}
+
+async function runCore(keyword) {
+  if (aiRunning) return;
+  aiRunning = true;
+  aiExec.disabled = true;
+  aiInput.disabled = true;
+  aiTags.querySelectorAll('.tag-btn').forEach(b => b.disabled = true);
+
+  aiOutput.innerHTML = '';
+
+  const steps = [
+    '> PARSING INPUT...',
+    '> CONNECTING NEURAL LINK...',
+    '> DECRYPTING MESSAGE...'
+  ];
+  for (const line of steps) {
+    appendSysLine(line);
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  const reply = pickReply(keyword);
+  await typewriterReply(reply);
+
+  aiRunning = false;
+  aiExec.disabled = false;
+  aiInput.disabled = false;
+  aiTags.querySelectorAll('.tag-btn').forEach(b => b.disabled = false);
+  aiInput.focus();
+}
+
+aiExec.addEventListener('click', () => {
+  const kw = aiInput.value.trim() || 'default';
+  runCore(kw);
+});
+
+aiInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    aiExec.click();
+  }
+});
+
+aiTags.addEventListener('click', e => {
+  const btn = e.target.closest('.tag-btn');
+  if (!btn) return;
+  const kw = btn.dataset.kw;
+  aiInput.value = kw;
+  aiTags.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  runCore(kw);
+});
+
 /* ============ 分幕浮现 + 信件打字机 + 逐个祝福 ============ */
 let typed = false, typeTimer = null;
 const letterBody = document.getElementById('letterBody');
@@ -1028,6 +1585,7 @@ function initScenes(){
       if (en.target.classList.contains('reveal')) en.target.classList.add('in');
       if (en.target.id === 's2') typeLetter();
       if (en.target.id === 's3') document.getElementById('moon').classList.add('in');
+      if (en.target.id === 's3b') document.getElementById('aiInput').focus();
       if (en.target.id === 's5') showBless();
       io.unobserve(en.target);
     }
@@ -1050,8 +1608,13 @@ flame.addEventListener('click', () => {
 });
 
 /* ============ 返回顶部 ============ */
-document.getElementById('topBtn').addEventListener('click', () =>
-  window.scrollTo({ top: 0, behavior: 'smooth' }));
+document.getElementById('topBtn').addEventListener('click', () => {
+  const btn = document.getElementById('topBtn');
+  btn.style.transform = 'rotate(360deg) scale(1.1)';
+  btn.style.transition = 'transform .5s cubic-bezier(.3,.6,.4,1)';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 500);
+});
 </script>
 </body>
 </html>
