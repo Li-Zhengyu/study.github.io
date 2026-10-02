@@ -766,71 +766,50 @@ function drawConfetti(){
 }
 requestAnimationFrame(drawConfetti);
 
-/* ============ 音频：共享上下文 + 自动播放兜底 ============ */
-let audioCtx = null, songPlayed = false;
+/* ============ 音频：本地 MP3 (Dream It Possible - 张靓颖) ============ */
 const vinyl = document.getElementById('vinyl');
 const playBtn = document.getElementById('playBtn');
-let melodyTimer = null;
+const audioEl = new Audio('dream-it-possible.mp3');
+audioEl.preload = 'metadata';
+let isPlaying = false;
 
-function tryStartSong(){
-  if (songPlayed || !opened || !audioCtx || audioCtx.state !== 'running') return;
-  songPlayed = true;
-  playMelody(true);
+function tryAutoPlay(){
+  if (!opened) return;
+  audioEl.play().then(() => {
+    isPlaying = true;
+    vinyl.classList.add('spinning');
+    playBtn.textContent = '⏸ 暂停 · Dream It Possible';
+  }).catch(() => {
+    // 自动播放被阻止，等待用户点击
+  });
 }
-function ensureAudio(){
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    if (!audioCtx){
-      audioCtx = new AC();
-      audioCtx.addEventListener('statechange', tryStartSong);
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-    tryStartSong();
-  } catch(e){ /* 无声也无妨 */ }
-}
-function scheduleSong(ac){
-  const N = {G4:392, A4:440, B4:494, C5:523, D5:587, E5:659, F5:698, G5:784};
-  const song = [
-    ['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
-    ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
-    ['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],
-    ['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',2]
-  ];
-  const beat = .42; let t0 = ac.currentTime + .1;
-  for (const [note, b] of song){
-    const dur = b * beat;
-    const osc = ac.createOscillator(), g = ac.createGain();
-    osc.type = 'triangle'; osc.frequency.value = N[note];
-    g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(.16, t0 + .03);
-    g.gain.exponentialRampToValueAtTime(.001, t0 + dur * .95);
-    osc.connect(g).connect(ac.destination);
-    osc.start(t0); osc.stop(t0 + dur);
-    t0 += dur;
-  }
-  return (t0 - ac.currentTime) * 1000;
-}
-function playMelody(auto){
-  if (!audioCtx) return;
-  clearTimeout(melodyTimer);
-  const dur = scheduleSong(audioCtx);
-  vinyl.classList.add('spinning');
-  playBtn.textContent = '♪ PLAYING — 芯片音源';
-  melodyTimer = setTimeout(() => {
-    vinyl.classList.remove('spinning');
-    playBtn.textContent = '▶ 再听一遍';
-  }, dur + 350);
-}
+
 playBtn.addEventListener('click', () => {
-  ensureAudio();
-  if (!audioCtx){
-    playBtn.textContent = '✕ 当前环境不支持 · 试试网易云 →';
-    return;
+  if (isPlaying){
+    audioEl.pause();
+    isPlaying = false;
+    vinyl.classList.remove('spinning');
+    playBtn.textContent = '▶ 播放 Dream It Possible';
+  } else {
+    audioEl.play().then(() => {
+      isPlaying = true;
+      vinyl.classList.add('spinning');
+      playBtn.textContent = '⏸ 暂停 · Dream It Possible';
+    }).catch(() => {
+      playBtn.textContent = '✕ 播放失败 · 试试网易云 →';
+    });
   }
-  playMelody(false);
 });
 vinyl.addEventListener('click', () => playBtn.click());
+
+audioEl.addEventListener('ended', () => {
+  isPlaying = false;
+  vinyl.classList.remove('spinning');
+  playBtn.textContent = '▶ 再听一遍';
+});
+audioEl.addEventListener('error', () => {
+  playBtn.textContent = '✕ 加载失败 · 试试网易云 →';
+});
 
 /* ============ 启动日志 ============ */
 const bootLines = [
@@ -869,21 +848,7 @@ setInterval(() => {
                   ch: GCH[Math.random()*GCH.length|0], ttl: 7 });
 }, 2200);
 
-function staticBurst(){
-  try {
-    ensureAudio();
-    if (!audioCtx || audioCtx.state !== 'running') return;
-    const ac = audioCtx;
-    const len = Math.floor(ac.sampleRate * .09);
-    const buf = ac.createBuffer(1, len, ac.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1) * (1 - i/len);
-    const src = ac.createBufferSource(); src.buffer = buf;
-    const g = ac.createGain(); g.gain.value = .045;
-    const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1200;
-    src.connect(f); f.connect(g); g.connect(ac.destination); src.start();
-  } catch(e){ /* 静音环境忽略 */ }
-}
+function staticBurst(){ /* 故障音效已移除，使用本地 MP3 播放 */ }
 
 function pageGlitch(){
   const bars = document.getElementById('glitchBars');
@@ -939,7 +904,6 @@ const main = document.getElementById('main');
 let opened = false;
 function decrypt(){
   if (opened) return; opened = true;
-  ensureAudio();
   unbox.classList.add('glitch-out');
   pageGlitch();
   setTimeout(() => {
@@ -947,11 +911,10 @@ function decrypt(){
     initScenes();
     burst(innerWidth/2, innerHeight*.4, 150);
     glitchLoop();
+    tryAutoPlay(); // 解密后尝试自动播放音乐
   }, 300);
 }
 unbox.addEventListener('click', decrypt);
-['pointerdown','touchstart'].forEach(ev =>
-  addEventListener(ev, ensureAudio, { passive:true }));
 
 /* ============ 分幕浮现 + 信件打字机 + 逐个祝福 ============ */
 let typed = false, typeTimer = null;
