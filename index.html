@@ -63,6 +63,40 @@ body {
 #hud .bl { bottom:0; left:0; border-bottom-width:2px; border-left-width:2px; }
 #hud .br { bottom:0; right:0; border-bottom-width:2px; border-right-width:2px; }
 
+/* ---------- 右上角常驻黑胶（背景音乐） ---------- */
+.bg-vinyl {
+  position:fixed; top:18px; right:18px; z-index:42;
+  width:56px; height:56px; cursor:pointer;
+  transition:transform .2s, filter .2s;
+  filter:drop-shadow(0 0 10px rgba(255,45,149,.4));
+}
+.bg-vinyl:hover { transform:scale(1.06); filter:drop-shadow(0 0 18px rgba(255,45,149,.7)); }
+.bg-vinyl .vinyl-disc {
+  position:absolute; inset:0; margin:auto; width:48px; height:48px; border-radius:50%;
+  background:
+    radial-gradient(circle, #ff2d95 0 17%, #12101f 18% 30%, transparent 30%),
+    repeating-radial-gradient(circle at 50% 50%, #0d0a1c 0 3px, #191537 3px 6px);
+  border:1px solid rgba(255,45,149,.45);
+  box-shadow:0 0 18px rgba(255,45,149,.35), inset 0 0 24px rgba(0,0,0,.7);
+}
+.bg-vinyl .vinyl-disc::before {
+  content:""; position:absolute; inset:0; margin:auto; width:18px; height:18px; border-radius:50%;
+  background:radial-gradient(circle, #ff5fa8, #b81d63);
+}
+.bg-vinyl .vinyl-disc::after {
+  content:""; position:absolute; inset:0; margin:auto; width:4px; height:4px; border-radius:50%; background:#05060f;
+}
+.bg-vinyl .vinyl-needle {
+  position:absolute; top:4px; right:4px; width:22px; height:6px;
+  background:linear-gradient(90deg, transparent, #885);
+  border-radius:3px; transform-origin:right center;
+  transform:rotate(-35deg); opacity:.85;
+  transition:transform .4s cubic-bezier(.3,.6,.4,1);
+}
+.bg-vinyl.spinning .vinyl-disc { animation:bgSpin 2.8s linear infinite; }
+.bg-vinyl.spinning .vinyl-needle { transform:rotate(-18deg); }
+@keyframes bgSpin { to { transform:rotate(360deg); } }
+
 /* ---------- 启动 / 解密遮罩 ---------- */
 #unbox {
   position:fixed; inset:0; z-index:100;
@@ -490,6 +524,12 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 <div class="ticker"><div class="ticker-in" id="ticker"></div></div>
 <div id="hud"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
 
+<!-- 右上角常驻黑胶：背景音乐控制 -->
+<div id="bgVinyl" class="bg-vinyl" title="点击播放/暂停背景音乐 Dream It Possible (Delacey)">
+  <div class="vinyl-disc"></div>
+  <div class="vinyl-needle"></div>
+</div>
+
 <!-- 启动解密 -->
 <div id="unbox">
   <pre id="bootLog"></pre>
@@ -766,20 +806,41 @@ function drawConfetti(){
 }
 requestAnimationFrame(drawConfetti);
 
-/* ============ 音频：Web Audio API 合成生日歌 + 本地 MP3 我的梦 ============ */
-const vinyl = document.getElementById('vinyl');
-const playBtn = document.getElementById('playBtn');
+/* ============ 背景音乐：右上角常驻黑胶（循环播放 Delacey 版 Dream It Possible） ============ */
+const bgVinyl = document.getElementById('bgVinyl');
+const bgAudio = new Audio('dream-it-possible-delacey.mp3');
+bgAudio.loop = true; bgAudio.preload = 'auto'; bgAudio.volume = 0.35;
+let bgPlaying = false;
+
+function tryBgAutoplay(){
+  if (!opened) return;
+  bgAudio.play().then(() => {
+    bgPlaying = true;
+    bgVinyl.classList.add('spinning');
+  }).catch(() => { /* 等待用户交互 */ });
+}
+
+bgVinyl.addEventListener('click', () => {
+  if (bgPlaying){
+    bgAudio.pause(); bgPlaying = false; bgVinyl.classList.remove('spinning');
+  } else {
+    bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); })
+      .catch(() => { bgVinyl.title = '播放被阻止，请再试一次'; });
+  }
+});
+
+/* ============ 第四幕：芯片生日歌（Web Audio API） ============ */
+const vinyl4 = document.getElementById('vinyl');
+const playBtn4 = document.getElementById('playBtn');
 let audioCtx = null, melodyTimer = null;
 
 function ensureAudio(){
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    if (!audioCtx){
-      audioCtx = new AC();
-    }
+    if (!audioCtx){ audioCtx = new AC(); }
     if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-  } catch(e){ /* 无声也无妨 */ }
+  } catch(e){}
 }
 
 function scheduleBirthdaySong(ac){
@@ -809,23 +870,20 @@ function playBirthdaySong(){
   if (!audioCtx) return;
   clearTimeout(melodyTimer);
   const dur = scheduleBirthdaySong(audioCtx);
-  vinyl.classList.add('spinning');
-  playBtn.textContent = '♪ PLAYING — 芯片生日歌';
+  vinyl4.classList.add('spinning');
+  playBtn4.textContent = '♪ PLAYING — 芯片生日歌';
   melodyTimer = setTimeout(() => {
-    vinyl.classList.remove('spinning');
-    playBtn.textContent = '▶ 再听生日歌';
+    vinyl4.classList.remove('spinning');
+    playBtn4.textContent = '▶ 再听生日歌';
   }, dur + 300);
 }
 
-playBtn.addEventListener('click', () => {
+playBtn4.addEventListener('click', () => {
   ensureAudio();
-  if (!audioCtx){
-    playBtn.textContent = '✕ 当前环境不支持 · 试试本地歌 →';
-    return;
-  }
+  if (!audioCtx){ playBtn4.textContent = '✕ 当前环境不支持'; return; }
   playBirthdaySong();
 });
-vinyl.addEventListener('click', () => playBtn.click());
+vinyl4.addEventListener('click', () => playBtn4.click());
 
 /* ============ 启动日志 ============ */
 const bootLines = [
