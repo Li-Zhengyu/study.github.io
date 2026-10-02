@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 生日快乐！</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px 40px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cake {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .message {
+            color: #333;
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .wishes {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .wish-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .wish-item:nth-child(1) { animation-delay: 0.1s; }
+        .wish-item:nth-child(2) { animation-delay: 0.2s; }
+        .wish-item:nth-child(3) { animation-delay: 0.3s; }
+        .wish-item:nth-child(4) { animation-delay: 0.4s; }
+        .wish-item:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .footer {
+            color: #666;
+            font-size: 1em;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .heart {
+            color: #e74c3c;
+            display: inline-block;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        /* 飘落的彩带动画 */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0e;
+            top: -10px;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            .subtitle {
+                font-size: 1.2em;
+            }
+            .message {
+                font-size: 1em;
+            }
+            .cake {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cake">🎂</div>
+        <h1>生日快乐！</h1>
+        <p class="subtitle">Happy Birthday to You</p>
+        
+        <div class="message">
+            愿你的每一天都充满阳光与欢笑，<br>
+            愿你的每一个梦想都能实现，<br>
+            愿你的每一步都走向更美好的未来！<br>
+            祝你生日快乐，万事如意！
+        </div>
+
+        <div class="wishes">
+            <span class="wish-item">🎉 心想事成</span>
+            <span class="wish-item">🎁 好运连连</span>
+            <span class="wish-item">🌟 光芒万丈</span>
+            <span class="wish-item">💝 幸福美满</span>
+            <span class="wish-item">🎈 快乐每一天</span>
+        </div>
+
+        <div class="footer">
+            <p>送上最真挚的祝福 <span class="heart">❤️</span></p>
+        </div>
+    </div>
+
+    <script>
+        // 创建飘落的彩带效果
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b'];
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            confetti.style.opacity = Math.random();
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }
+
+        // 每300ms创建一个彩带
+        setInterval(createConfetti, 300);
+    </script>
+</body>
+</html>
