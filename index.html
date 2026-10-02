@@ -567,10 +567,10 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
         把音量调到刚刚好。
       </p>
       <div class="btn-row reveal d3">
-        <button class="btn-neon" id="playBtn">▶ 播放芯片音源</button>
-        <a class="btn-neon pk" id="neteaseBtn" href="https://music.163.com/#/song?id=561654990" target="_blank" rel="noopener">↗ 网易云 · Dream It Possible</a>
+        <button class="btn-neon" id="playBtn">▶ 播放芯片生日歌</button>
+        <a class="btn-neon pk" id="localBtn" href="dream-it-possible.mp3" target="_blank" rel="noopener">↗ 本地 · 我的梦 (张靓颖)</a>
       </div>
-      <p class="music-note reveal d4">// 芯片音源 = 页面内合成的 8-bit 生日旋律<br>// 或者跳去网易云，听你今晚想听的那首</p>
+      <p class="music-note reveal d4">// 左键黑胶/按钮 = 页面内合成 8-bit 生日歌<br>// 右键「本地 · 我的梦」另存为 / 新标签直链播放</p>
     </section>
   </section>
 
@@ -766,50 +766,66 @@ function drawConfetti(){
 }
 requestAnimationFrame(drawConfetti);
 
-/* ============ 音频：本地 MP3 (Dream It Possible - 张靓颖) ============ */
+/* ============ 音频：Web Audio API 合成生日歌 + 本地 MP3 我的梦 ============ */
 const vinyl = document.getElementById('vinyl');
 const playBtn = document.getElementById('playBtn');
-const audioEl = new Audio('dream-it-possible.mp3');
-audioEl.preload = 'metadata';
-let isPlaying = false;
+let audioCtx = null, melodyTimer = null;
 
-function tryAutoPlay(){
-  if (!opened) return;
-  audioEl.play().then(() => {
-    isPlaying = true;
-    vinyl.classList.add('spinning');
-    playBtn.textContent = '⏸ 暂停 · Dream It Possible';
-  }).catch(() => {
-    // 自动播放被阻止，等待用户点击
-  });
+function ensureAudio(){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx){
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  } catch(e){ /* 无声也无妨 */ }
+}
+
+function scheduleBirthdaySong(ac){
+  const N = {G4:392, A4:440, B4:494, C5:523, D5:587, E5:659, F5:698, G5:784};
+  const song = [
+    ['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
+    ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
+    ['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],
+    ['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',2]
+  ];
+  const beat = .42; let t0 = ac.currentTime + .05;
+  for (const [note, b] of song){
+    const dur = b * beat;
+    const osc = ac.createOscillator(), g = ac.createGain();
+    osc.type = 'triangle'; osc.frequency.value = N[note];
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(.18, t0 + .02);
+    g.gain.exponentialRampToValueAtTime(.001, t0 + dur * .92);
+    osc.connect(g).connect(ac.destination);
+    osc.start(t0); osc.stop(t0 + dur);
+    t0 += dur;
+  }
+  return (t0 - ac.currentTime) * 1000;
+}
+
+function playBirthdaySong(){
+  if (!audioCtx) return;
+  clearTimeout(melodyTimer);
+  const dur = scheduleBirthdaySong(audioCtx);
+  vinyl.classList.add('spinning');
+  playBtn.textContent = '♪ PLAYING — 芯片生日歌';
+  melodyTimer = setTimeout(() => {
+    vinyl.classList.remove('spinning');
+    playBtn.textContent = '▶ 再听生日歌';
+  }, dur + 300);
 }
 
 playBtn.addEventListener('click', () => {
-  if (isPlaying){
-    audioEl.pause();
-    isPlaying = false;
-    vinyl.classList.remove('spinning');
-    playBtn.textContent = '▶ 播放 Dream It Possible';
-  } else {
-    audioEl.play().then(() => {
-      isPlaying = true;
-      vinyl.classList.add('spinning');
-      playBtn.textContent = '⏸ 暂停 · Dream It Possible';
-    }).catch(() => {
-      playBtn.textContent = '✕ 播放失败 · 试试网易云 →';
-    });
+  ensureAudio();
+  if (!audioCtx){
+    playBtn.textContent = '✕ 当前环境不支持 · 试试本地歌 →';
+    return;
   }
+  playBirthdaySong();
 });
 vinyl.addEventListener('click', () => playBtn.click());
-
-audioEl.addEventListener('ended', () => {
-  isPlaying = false;
-  vinyl.classList.remove('spinning');
-  playBtn.textContent = '▶ 再听一遍';
-});
-audioEl.addEventListener('error', () => {
-  playBtn.textContent = '✕ 加载失败 · 试试网易云 →';
-});
 
 /* ============ 启动日志 ============ */
 const bootLines = [
