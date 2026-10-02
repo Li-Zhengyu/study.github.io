@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#070512">
-<title>致 蒸鱼（南愉）的十八岁</title>
+<title>致你的十八岁</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
@@ -400,8 +400,8 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   <span class="hint-badge glitch gl-d1" data-text="◈ NEURAL LINK ESTABLISHED · 神经链接已建立">◈ NEURAL LINK ESTABLISHED · 神经链接已建立</span>
 
   <div class="dear">TARGET_USER</div>
-  <div class="hero-name glitch gl-d1" id="toName" data-text="蒸鱼">蒸鱼</div>
-  <div class="alias glitch gl-d2" id="alias" data-text="« A.K.A. 南愉 »">« A.K.A. 南愉 »</div>
+  <div class="hero-name glitch gl-d1" id="toName" data-text="朋友">朋友</div>
+  <div class="alias glitch gl-d2" id="alias" data-text="" style="display:none"></div>
   <div class="hero-cn glitch gl-d2" data-text="十八岁，生日快乐">十八岁，生日快乐</div>
   <div class="hero-sub"><span class="ok">&gt;&gt;</span> ADULT_NET ACCESS GRANTED · 成人网络准入通过 <span class="ok">::</span> PWR <span class="ok">MAX</span></div>
 
@@ -425,8 +425,8 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
     <div class="spec-line"><span class="k">MEMORY</span><span class="v">显存无限 · 存得下整个青春</span></div>
     <div class="spec-line"><span class="k">STRESS</span><span class="v">抗压测试满级 · <b>坚如磐石</b></span></div>
     <div class="spec-line"><span class="k">GLOW</span><span class="v">五彩缤纷 · 自带光源，越暗越亮</span></div>
-    <div class="spec-line"><span class="k">DRIVER</span><span class="v">与世界温柔兼容 · 与我们<b>永不掉线</b></span></div>
-    <div class="spec-line"><span class="k">WARRANTY</span><span class="v">终身质保 · 由全体同学朋友<b>联合承保</b></span></div>
+    <div class="spec-line"><span class="k">DRIVER</span><span class="v">与世界温柔兼容 · 与我<b>永不掉线</b></span></div>
+    <div class="spec-line"><span class="k">WARRANTY</span><span class="v">终身质保 · 由 <b>蒸鱼（南愉）</b><b>独家承保</b></span></div>
   </section>
 
   <!-- 信 -->
@@ -462,55 +462,53 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
     <div class="eot glitch gl-d1" data-text="═══ END OF TRANSMISSION ═══">═══ END OF TRANSMISSION ═══</div>
     <p class="wafer-note">这枚小小的钥匙扣里，封存着一片<span class="cy">真实的硅晶圆</span><br>
     <span class="pk">五彩缤纷</span>又坚如磐石 · <span class="cy">精细</span>又牢靠<br>
-    往后翻到它，就想起十八岁的今天，有人真心祝你快乐</p>
-    <p class="from-line" id="fromLine">—— 来自 你高中的那帮同学和朋友</p>
+    往后翻到它，就想起十八岁的今天，我真心祝你快乐</p>
+    <p class="from-line" id="fromLine">—— 来自 蒸鱼（南愉）</p>
     <p class="date-line">// BUILD_2026 · NEON NEVER DIES</p>
   </footer>
 </main>
 
 <script>
-/* ============ 个性化：?to=名字&alias=别名&from=署名 ============ */
+/* ============ 个性化：?to=收件人&alias=别名&from=署名（默认署名 蒸鱼（南愉）） ============ */
 const qs = new URLSearchParams(location.search);
-const hasTo = !!(qs.get('to') || qs.get('name'));
-const nameFinal = hasTo ? (qs.get('to') || qs.get('name')).trim() : '蒸鱼';
-const aliasName = (qs.get('alias') || (hasTo ? '' : '南愉')).trim();
-const fromName = (qs.get('from') || '').trim();
+const toName = (qs.get('to') || qs.get('name') || '朋友').trim();
+const aliasName = (qs.get('alias') || '').trim();
+const fromName = (qs.get('from') || '蒸鱼（南愉）').trim();
 
 const nameEl = document.getElementById('toName');
-nameEl.textContent = nameFinal;
-nameEl.dataset.text = nameFinal;
+nameEl.textContent = toName;
+nameEl.dataset.text = toName;
 
 const aliasEl = document.getElementById('alias');
 if (aliasName){
+  aliasEl.style.display = '';
   aliasEl.textContent = '« A.K.A. ' + aliasName + ' »';
   aliasEl.dataset.text = aliasEl.textContent;
-} else {
-  aliasEl.style.display = 'none';
 }
 
 const heroCnEl = document.querySelector('.hero-cn');
 const badgeEl = document.querySelector('.hint-badge');
 const eotEl = document.querySelector('.eot');
 
-if (fromName) document.getElementById('fromLine').textContent = '—— 来自 ' + fromName;
-document.getElementById('termTitle').textContent = 'READ_ME.txt — /gift/' + nameFinal;
-document.title = '致 ' + nameFinal + (aliasName ? '（' + aliasName + '）' : '') + '的十八岁';
+document.getElementById('fromLine').textContent = '—— 来自 ' + fromName;
+document.getElementById('termTitle').textContent = 'READ_ME.txt — /gift/' + toName;
+document.title = toName === '朋友' ? '致你的十八岁' : '致 ' + toName + ' 的十八岁';
 
 /* 顶部滚动栏 */
 (function buildTicker(){
-  const seg = 'SYS.ONLINE ▸ NEURAL_LINK: <b>' + nameFinal + '</b> ▸ 0x12 YEARS ▸ WAFER: GENUINE ▸ FRIENDS: ONLINE ▸ LOVE: MAX_VALUE ▸ 欢迎接入赛博空间 ▸ WELCOME TO THE GRID ▸ ';
+  const seg = 'SYS.ONLINE ▸ NEURAL_LINK: <b>' + toName + '</b> ▸ 0x12 YEARS ▸ WAFER: GENUINE ▸ GIFT_FROM: <b>' + fromName + '</b> ▸ LOVE: MAX_VALUE ▸ 欢迎接入赛博空间 ▸ WELCOME TO THE GRID ▸ ';
   document.getElementById('ticker').innerHTML = seg + seg;
 })();
 
-/* ============ 信件全文 ============ */
+/* ============ 信件全文（送件人：蒸鱼（南愉）） ============ */
 const letterText =
   '十八岁了呀。\n\n' +
   '从今天起，你正式接入「成人网络」，\n' +
   'ID 全新升级，权限：无上限。\n\n' +
-  '我们是陪你熬过晚自习、\n' +
-  '传过纸条、在校服上签过名的那群人。\n' +
+  '我是陪你熬过晚自习、\n' +
+  '传过纸条、在校服上签过名的那个人。\n' +
   '以后也许不在同一座城市、同一间教室，\n' +
-  '但只要你上线，我们永远在线。\n\n' +
+  '但只要你上线，我永远在线。\n\n' +
   '愿你像一枚被精心打磨的芯片：\n' +
   '五彩缤纷又坚如磐石，\n' +
   '美丽且坚固，精细又牢靠。\n' +
@@ -519,9 +517,10 @@ const letterText =
   '系统更新日志 v18.0.0：\n' +
   '· 修复：不再弹出「未成年人」提示\n' +
   '· 新增：对自己的人生全权负责\n' +
-  '· 已知问题：偶尔想我们（属正常现象）\n\n' +
+  '· 已知问题：偶尔想我（属正常现象）\n\n' +
   '成人世界，欢迎登录。\n' +
-  '往后年年，满格运行。';
+  '往后年年，满格运行。\n\n' +
+  '—— 你的朋友 蒸鱼（南愉）';
 
 /* ============ 背景：星点 + 矩阵字符雨 + 乱码闪现 ============ */
 const sc = document.getElementById('stars'), sctx = sc.getContext('2d');
@@ -661,7 +660,7 @@ function scheduleSong(ac){
 /* ============ 启动日志 ============ */
 const bootLines = [
   ['> POWER_ON_SELF_TEST .......... ', 'OK'],
-  ['> NEURAL_LINK: ' + nameFinal + (aliasName ? '(' + aliasName + ')' : '') + ' ', '…… ', 'pink'],
+  ['> NEURAL_LINK: ' + toName + (aliasName ? '(' + aliasName + ')' : '') + ' ', '…… ', 'pink'],
   ['  CONNECTED ................. ', 'OK'],
   ['> WAFER_INTEGRITY ............. ', '100%'],
   ['> LOADING MEMORIES 2008-2026 .. ', 'OK'],
