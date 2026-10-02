@@ -1,551 +1,869 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎂 生日快乐！</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05070f">
+<title>十八岁生日快乐</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d0d2b 100%);
-            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            color: #fff;
-            overflow-x: hidden;
-            position: relative;
-        }
+html, body { height:100%; }
 
-        /* 芯片电路背景动画 */
-        .circuit-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.15;
-        }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  background:radial-gradient(120% 90% at 50% 0%, #0b1020 0%, #06080f 50%, #04050a 100%);
+  color:#d8e6f2;
+  overflow-x:hidden;
+  min-height:100vh;
+}
 
-        .circuit-line {
-            position: absolute;
-            background: linear-gradient(90deg, transparent, #00ffcc, transparent);
-            height: 1px;
-            animation: circuitFlow 4s linear infinite;
-        }
+.mono { font-family:"SF Mono", "Cascadia Code", Consolas, Menlo, "Courier New", monospace; }
 
-        @keyframes circuitFlow {
-            0% { transform: translateX(-100%); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(100vw); opacity: 0; }
-        }
+/* ---------- 背景：网格 + 扫描线 ---------- */
+.grid-bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,229,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.05) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(80% 70% at 50% 30%, #000 30%, transparent 100%);
+  -webkit-mask-image:radial-gradient(80% 70% at 50% 30%, #000 30%, transparent 100%);
+}
+.scanlines {
+  position:fixed; inset:0; z-index:40; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px);
+}
+#stars { position:fixed; inset:0; z-index:0; }
+#confetti { position:fixed; inset:0; z-index:60; pointer-events:none; }
 
-        /* 浮动粒子 */
-        .particle {
-            position: fixed;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
-            animation: floatUp 6s ease-in-out infinite;
-        }
+/* ---------- 启动 / 解密遮罩 ---------- */
+#unbox {
+  position:fixed; inset:0; z-index:100;
+  background:#04050a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:opacity .8s ease, visibility .8s;
+  padding:24px;
+}
+#unbox.hidden { opacity:0; visibility:hidden; }
+#bootLog {
+  font-family:"SF Mono", Consolas, Menlo, "Courier New", monospace;
+  font-size:12.5px; line-height:2; color:#3ddc84;
+  text-shadow:0 0 8px rgba(61,220,132,.4);
+  white-space:pre-wrap; width:min(88vw, 420px); min-height:200px;
+}
+#bootLog .dim { color:#2a7a4d; }
+#bootLog .cy { color:#00e5ff; text-shadow:0 0 8px rgba(0,229,255,.5); }
+#bootLog .gold { color:#ffc857; text-shadow:0 0 8px rgba(255,200,87,.5); }
+#bootBar {
+  width:min(72vw, 320px); height:3px; margin-top:26px;
+  background:rgba(0,229,255,.14); border-radius:2px; overflow:hidden;
+}
+#bootBar i {
+  display:block; height:100%; width:0;
+  background:linear-gradient(90deg,#00e5ff,#7df9ff);
+  box-shadow:0 0 10px #00e5ff; transition:width 2.2s cubic-bezier(.3,.6,.4,1);
+}
+#bootPrompt {
+  display:none; margin-top:34px;
+  font-size:23px; font-weight:600; letter-spacing:.12em;
+  background:linear-gradient(90deg,#7df9ff,#00e5ff,#ffc857,#7df9ff);
+  background-size:300% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:shimmer 3.5s linear infinite, pulse 2s ease-in-out infinite;
+}
+#bootSub {
+  display:none; margin-top:12px; font-size:12px; color:#4d5b78;
+  letter-spacing:.35em; font-family:Consolas, monospace;
+}@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+@keyframes shimmer { to { background-position:300% 0; } }
 
-        @keyframes floatUp {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
-            50% { transform: translateY(-30px) scale(1.5); opacity: 1; }
-        }
+/* ---------- 主内容 ---------- */
+main {
+  position:relative; z-index:1;
+  max-width:520px; margin:0 auto;
+  padding:40px 24px 80px;
+  opacity:0; transition:opacity 1.2s ease;
+}
+main.revealed { opacity:1; }
 
-        /* 主容器 */
-        .container {
-            position: relative;
-            z-index: 10;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            text-align: center;
-        }
+.hint-badge {
+  display:block; width:max-content; margin:0 auto 4px;
+  font-size:11px; letter-spacing:.22em;
+  color:#00e5ff; border:1px solid rgba(0,229,255,.35);
+  padding:6px 14px; border-radius:4px;
+  font-family:Consolas, monospace;
+  background:rgba(0,229,255,.05);
+  animation:blink 2.6s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:.55} 50%{opacity:1} }
 
-        /* 芯片图标 */
-        .chip-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 30px;
-            position: relative;
-            animation: chipPulse 3s ease-in-out infinite;
-        }
+/* ---------- 芯片吊坠 ---------- */
+.chip-zone { position:relative; margin:10px auto 0; width:min(88vw, 360px); cursor:pointer;
+  -webkit-user-select:none; user-select:none; perspective:1100px; }
+.float { animation:float 5.5s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.flip { position:relative; transform-style:preserve-3d; transition:transform 1s cubic-bezier(.25,.7,.3,1.15); }
+.flip.flipped { transform:rotateY(180deg); }
+.face { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.face svg { display:block; width:100%; height:auto; }
+.face.front svg { filter:drop-shadow(0 0 26px rgba(0,229,255,.28)) drop-shadow(0 18px 30px rgba(0,0,0,.6)); }
+.face.back { position:absolute; inset:0; transform:rotateY(180deg); }
+.face.back svg { filter:drop-shadow(0 18px 30px rgba(0,0,0,.6)); }
 
-        @keyframes chipPulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(0, 255, 204, 0.3)); }
-            50% { transform: scale(1.05); filter: drop-shadow(0 0 40px rgba(0, 255, 204, 0.6)); }
-        }
+.scan-ring { transform-origin:180px 150px; animation:spin 22s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.flow-line { stroke-dasharray:7 110; animation:flow 3.2s linear infinite; }
+.flow-line.f2 { animation-duration:4.1s; animation-delay:-1.2s; }
+.flow-line.f3 { animation-duration:5s; animation-delay:-2.4s; }
+@keyframes flow { to { stroke-dashoffset:-117; } }
 
-        .chip-icon svg {
-            width: 100%;
-            height: 100%;
-        }
+.flip-tip {
+  text-align:center; margin-top:16px; font-size:12px;
+  color:#4d5b78; letter-spacing:.16em; font-family:Consolas, monospace;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+.flip-tip b { color:#00e5ff; font-weight:400; }
 
-        /* 标题 */
-        .title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #00ffcc, #ff6b9d, #c084fc, #60a5fa, #00ffcc);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 4s ease infinite;
-            margin-bottom: 20px;
-            text-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
-        }
+.dear {
+  margin-top:26px; text-align:center;
+  font-size:12px; color:#4d5b78; letter-spacing:.35em; text-indent:.35em;
+  font-family:Consolas, monospace;
+}
+.hero-name {
+  text-align:center; margin-top:8px;
+  font-size:clamp(30px, 9vw, 42px); font-weight:700; letter-spacing:.1em;
+  color:#eafcff;
+  text-shadow:0 0 18px rgba(0,229,255,.55), 0 0 60px rgba(0,229,255,.25);
+  word-break:break-all;
+}
+.hero-cn {
+  margin-top:14px; text-align:center;
+  font-size:20px; font-weight:600; letter-spacing:.28em; text-indent:.28em;
+  color:#ffc857;
+  text-shadow:0 0 22px rgba(255,200,87,.4);
+}
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+/* ---------- 故障效果 ---------- */
+#glitchBars { position:fixed; inset:0; z-index:55; pointer-events:none; }
+body.glitching main { animation:pageJitter .32s steps(2) both; }
+@keyframes pageJitter {
+  0% { transform:none; }
+  25% { transform:translate(-5px,2px) skewX(-.6deg); }
+  50% { transform:translate(4px,-2px); }
+  75% { transform:translate(-2px,1px) skewX(.5deg); }
+  100% { transform:none; }
+}
+.chip-zone.chip-glitch { animation:chipGlitch .34s steps(2) both; }
+@keyframes chipGlitch {
+  0% { transform:none; }
+  20% { transform:translate(-4px,2px); filter:hue-rotate(60deg) saturate(2); }
+  45% { transform:translate(3px,-2px) skewX(-1.5deg); filter:invert(.85); }
+  70% { transform:translate(-2px,1px); filter:none; }
+  100% { transform:none; }
+}
+#unbox.glitch-out { animation:bootOut .3s steps(3) both; }
+@keyframes bootOut {
+  0% { filter:none; transform:none; }
+  33% { filter:hue-rotate(120deg) saturate(3); transform:translate(-7px,3px); }
+  66% { filter:invert(.9); transform:translate(6px,-4px); }
+  100% { filter:none; transform:none; opacity:.2; }
+}
+.glitch { position:relative; }
+.glitch::before, .glitch::after {
+  content:attr(data-text); position:absolute; left:0; right:0; top:0;
+  opacity:0; pointer-events:none; text-shadow:none;
+}
+.glitch::before { color:#00e5ff; animation:gA 6s infinite steps(1); }
+.glitch::after  { color:#ff3d81; animation:gB 6s infinite steps(1); }
+.glitch.gl-d1::before { animation-delay:-2.3s; } .glitch.gl-d1::after { animation-delay:-4.1s; }
+.glitch.gl-d2::before { animation-delay:-3.7s; } .glitch.gl-d2::after { animation-delay:-1.4s; }
+@keyframes gA {
+  0%, 95.9%, 100% { opacity:0; transform:none; clip-path:inset(0 0 0 0); }
+  96% { opacity:.85; transform:translate(-3px,2px); clip-path:inset(15% 0 58% 0); }
+  97% { opacity:.85; transform:translate(2px,-1px); clip-path:inset(62% 0 12% 0); }
+  98% { opacity:.85; transform:translate(-2px,1px); clip-path:inset(38% 0 34% 0); }
+}
+@keyframes gB {
+  0%, 94.9%, 100% { opacity:0; transform:none; clip-path:inset(0 0 0 0); }
+  95% { opacity:.8; transform:translate(3px,-2px); clip-path:inset(48% 0 26% 0); }
+  96% { opacity:.8; transform:translate(-2px,2px); clip-path:inset(8% 0 76% 0); }
+  97.5% { opacity:.8; transform:translate(2px,0); clip-path:inset(70% 0 8% 0); }
+}
+#bootLog .err { color:#ff5f57; text-shadow:0 0 8px rgba(255,95,87,.5); }
 
-        .subtitle {
-            font-size: 1.3rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 50px;
-            letter-spacing: 2px;
-        }
+/* ---------- 卡片：HUD 角框 ---------- */
+.card {
+  margin-top:34px;
+  background:rgba(10,20,34,.55);
+  border:1px solid rgba(0,229,255,.18);
+  border-radius:8px;
+  padding:26px 22px;
+  position:relative;
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+}
+.card::before, .card::after,
+.card .ck::before, .card .ck::after {
+  content:""; position:absolute; width:12px; height:12px;
+  border-color:#00e5ff; border-style:solid; opacity:.9;
+}
+.card::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+.card::after  { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+.card .ck::before { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
+.card .ck::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
 
-        /* 芯片特性卡片 */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 50px;
-        }
+.card-title {
+  font-size:12px; letter-spacing:.2em; color:#00e5ff;
+  font-family:Consolas, monospace; margin-bottom:18px;
+}
+.card-title .dot { color:#3ddc84; }
 
-        .feature-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 255, 204, 0.2);
-            border-radius: 16px;
-            padding: 28px 20px;
-            backdrop-filter: blur(10px);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
+/* 工艺日志 */
+.log-line {
+  font-size:14.5px; line-height:2.05; color:#c9d9e8;
+  font-family:Consolas, "PingFang SC", monospace;
+}
+.log-line .tag { color:#3ddc84; margin-right:8px; text-shadow:0 0 6px rgba(61,220,132,.4); }
+.log-line .tag.g { color:#ffc857; text-shadow:0 0 6px rgba(255,200,87,.5); }
+.log-line b { color:#ffe9b8; font-weight:600; }
+.log-note { margin-top:14px; font-size:13px; line-height:2; color:#5f718c; }
+.log-note .hl { color:#7df9ff; }
 
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(0, 255, 204, 0.1), transparent 30%);
-            animation: cardRotate 6s linear infinite;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+/* 终端信件 */
+.term { border-radius:8px; overflow:hidden; border:1px solid rgba(0,229,255,.2); }
+.term-bar {
+  display:flex; align-items:center; gap:7px;
+  background:#0d1524; padding:9px 13px;
+}
+.term-bar i { width:10px; height:10px; border-radius:50%; }
+.term-bar i:nth-child(1){ background:#ff5f57; } .term-bar i:nth-child(2){ background:#febc2e; } .term-bar i:nth-child(3){ background:#28c840; }
+.term-bar span {
+  margin-left:8px; font-size:11px; color:#4d5b78;
+  font-family:Consolas, monospace; letter-spacing:.08em;
+}
+.term-body {
+  background:rgba(4,8,16,.9); padding:22px 18px;
+  font-family:Consolas, "PingFang SC", monospace;
+  font-size:15px; line-height:2.1; color:#bfe8ff;
+  min-height:280px; white-space:pre-wrap; text-align:justify;
+}
+.term-body .caret {
+  display:inline-block; width:.62em; height:1.05em; background:#00e5ff;
+  vertical-align:-.18em; margin-left:2px;
+  animation:caret 1s step-end infinite; box-shadow:0 0 6px #00e5ff;
+}
+@keyframes caret { 50% { opacity:0; } }
 
-        .feature-card:hover::before {
-            opacity: 1;
-        }
+/* ---------- 蛋糕 ---------- */
+.cake-zone { margin-top:40px; text-align:center; }
+.exe-label {
+  font-size:11px; color:#4d5b78; letter-spacing:.2em;
+  font-family:Consolas, monospace; margin-bottom:16px;
+}
+.exe-label b { color:#ffc857; font-weight:400; }
+.cake { position:relative; width:150px; margin:0 auto; animation:cakeIn 1s ease .2s backwards; }
+@keyframes cakeIn { from { opacity:0; transform:translateY(24px) scale(.9); } }
 
-        .feature-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(0, 255, 204, 0.5);
-            box-shadow: 0 20px 60px rgba(0, 255, 204, 0.15);
-        }
+.candle { position:relative; width:8px; height:44px; margin:0 auto; z-index:3;
+  background:repeating-linear-gradient(45deg,#bfe8ff 0 4px,#3a6ea8 4px 8px);
+  border-radius:4px 4px 0 0;
+}
+.flame {
+  position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+  width:16px; height:24px; cursor:pointer;
+  background:radial-gradient(circle at 50% 70%, #fff6c8 0%, #ffcf5c 45%, #ff9a3d 80%, transparent 100%);
+  border-radius:50% 50% 50% 50% / 62% 62% 38% 38%;
+  box-shadow:0 0 22px 6px rgba(255,190,90,.55), 0 0 44px 10px rgba(255,140,60,.15);
+  animation:flicker .28s ease-in-out infinite alternate;
+  transition:transform .3s, opacity .3s;
+}
+@keyframes flicker {
+  from { transform:translateX(-50%) scale(1) skewX(-3deg); }
+  to   { transform:translateX(-50%) scale(1.15,.92) skewX(4deg); }
+}
+.flame.out { opacity:0; transform:translateX(-50%) scale(.1); pointer-events:none; }
+.smoke {
+  position:absolute; top:-30px; left:50%; width:10px; height:10px; margin-left:-5px;
+  background:rgba(140,180,220,.5); border-radius:50%; filter:blur(3px);
+  opacity:0; pointer-events:none;
+}
+.smoke.rise { animation:rise 1.6s ease-out forwards; }
+@keyframes rise {
+  0% { opacity:.8; transform:translateY(0) scale(.6); }
+  100% { opacity:0; transform:translateY(-46px) scale(1.8); }
+}
 
-        @keyframes cardRotate {
-            100% { transform: rotate(360deg); }
-        }
+.layer { border-radius:8px; margin:0 auto; position:relative; }
+.layer-1 { width:150px; height:46px; background:linear-gradient(#31435f,#1d2c44); }
+.layer-2 { width:112px; height:40px; background:linear-gradient(#3d5273,#28395200); top:-8px; position:relative;
+  background:linear-gradient(#3d5273,#283a55); }
+.layer .icing { position:absolute; top:-2px; left:0; right:0; height:14px;
+  background:radial-gradient(circle at 10px -4px, transparent 12px, #dfeefc 13px);
+  background-size:20px 18px; border-radius:10px 10px 0 0; }
+.plate { width:170px; height:12px; margin:-6px auto 0; border-radius:50%;
+  background:linear-gradient(#233650,#0d1624);
+  box-shadow:0 0 18px rgba(0,229,255,.12); }
 
-        .feature-icon {
-            font-size: 2.2rem;
-            margin-bottom: 12px;
-            display: block;
-        }
+.blow-tip { margin-top:18px; font-size:12.5px; color:#4d5b78; letter-spacing:.12em; font-family:Consolas, "PingFang SC", monospace; }
+.blow-tip .flame-word { color:#ffcf5c; }
+.blow-tip.done { color:#7df9ff; text-shadow:0 0 10px rgba(0,229,255,.4); }
 
-        .feature-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #00ffcc;
-        }
+/* 祝愿模块 */
+.wishes { margin-top:40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.wish {
+  font-size:14px; letter-spacing:.12em; padding:10px 16px; border-radius:4px;
+  background:rgba(0,229,255,.06);
+  border:1px solid rgba(0,229,255,.3); color:#d8f6ff;
+  font-family:Consolas, "PingFang SC", monospace;
+  opacity:0; transform:translateY(14px); transition:all .6s ease;
+}
+.wish::before { content:"[ "; color:#3ddc84; }
+.wish::after  { content:" ]"; color:#3ddc84; }
+.wish.show { opacity:1; transform:none; }
 
-        .feature-desc {
-            font-size: 0.92rem;
-            color: rgba(255, 255, 255, 0.65);
-            line-height: 1.6;
-        }
+/* 页脚 */
+.footer { margin-top:56px; text-align:center; }
+.eot {
+  font-size:11px; color:#4d5b78; letter-spacing:.3em;
+  font-family:Consolas, monospace;
+}
+.wafer-note { margin-top:16px; font-size:13px; line-height:2.1; color:#5f718c; }
+.wafer-note .cy { color:#7df9ff; }
+.wafer-note .gold { color:#ffc857; }
+.from-line { margin-top:16px; font-size:14px; color:#ffc857; letter-spacing:.1em; }
+.date-line { margin-top:6px; font-size:11.5px; color:#3a4a66; letter-spacing:.2em; font-family:Consolas, monospace; }
 
-        /* 祝福语区域 */
-        .blessing {
-            background: linear-gradient(135deg, rgba(0, 255, 204, 0.08), rgba(192, 132, 252, 0.08));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px 35px;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .blessing-text {
-            font-size: 1.25rem;
-            line-height: 2;
-            color: rgba(255, 255, 255, 0.85);
-        }
-
-        .blessing-text .highlight {
-            color: #00ffcc;
-            font-weight: 600;
-        }
-
-        .blessing-text .pink {
-            color: #ff6b9d;
-            font-weight: 600;
-        }
-
-        .blessing-text .purple {
-            color: #c084fc;
-            font-weight: 600;
-        }
-
-        /* 蛋糕动画 */
-        .cake-container {
-            margin: 40px 0;
-            position: relative;
-        }
-
-        .cake {
-            display: inline-block;
-            font-size: 4rem;
-            animation: cakeBounce 2s ease-in-out infinite;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .cake:hover {
-            transform: scale(1.2) rotate(5deg);
-        }
-
-        @keyframes cakeBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        /* 蜡烛火焰 */
-        .flame {
-            display: inline-block;
-            animation: flicker 0.3s ease-in-out infinite alternate;
-        }
-
-        @keyframes flicker {
-            0% { transform: scale(1) rotate(-2deg); opacity: 1; }
-            100% { transform: scale(1.1) rotate(2deg); opacity: 0.8; }
-        }
-
-        /* 点击吹蜡烛效果 */
-        .blown .flame {
-            display: none;
-        }
-
-        .blown::after {
-            content: '🎉';
-            position: absolute;
-            font-size: 3rem;
-            animation: popUp 0.5s ease-out forwards;
-        }
-
-        @keyframes popUp {
-            0% { transform: scale(0) translateY(0); opacity: 0; }
-            50% { transform: scale(1.3) translateY(-20px); opacity: 1; }
-            100% { transform: scale(1) translateY(-40px); opacity: 0; }
-        }
-
-        /* 烟花画布 */
-        #fireworks {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        /* 底部签名 */
-        .signature {
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .signature .heart {
-            color: #ff6b9d;
-            display: inline-block;
-            animation: heartbeat 1.5s ease-in-out infinite;
-        }
-
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            25% { transform: scale(1.2); }
-            50% { transform: scale(1); }
-            75% { transform: scale(1.15); }
-        }
-
-        /* 响应式 */
-        @media (max-width: 600px) {
-            .title { font-size: 2.2rem; }
-            .subtitle { font-size: 1rem; }
-            .features { grid-template-columns: 1fr; }
-            .blessing-text { font-size: 1.05rem; }
-            .container { padding: 40px 16px; }
-        }
-    </style>
+@media (max-width:360px) {
+  .card { padding:22px 16px; }
+}
+</style>
 </head>
 <body>
 
-    <!-- 电路背景线 -->
-    <div class="circuit-bg" id="circuitBg"></div>
+<div class="grid-bg"></div>
+<canvas id="stars"></canvas>
+<div class="scanlines"></div>
+<div id="glitchBars"></div>
 
-    <!-- 粒子容器 -->
-    <div id="particles"></div>
+<!-- 启动解密 -->
+<div id="unbox">
+  <pre id="bootLog"></pre>
+  <div id="bootBar"><i id="bootFill"></i></div>
+  <div id="bootPrompt">碰一下，拆开你的十八岁</div>
+  <div id="bootSub">[ AUTO_DECRYPTING … ]</div>
+</div>
 
-    <!-- 烟花画布 -->
-    <canvas id="fireworks"></canvas>
+<canvas id="confetti"></canvas>
 
-    <div class="container">
-        <!-- 芯片图标 -->
-        <div class="chip-icon">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#1a1a3e"/>
-                        <stop offset="50%" style="stop-color:#2d2d5e"/>
-                        <stop offset="100%" style="stop-color:#1a1a3e"/>
-                    </linearGradient>
-                    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#888"/>
-                        <stop offset="50%" style="stop-color:#ccc"/>
-                        <stop offset="100%" style="stop-color:#888"/>
-                    </linearGradient>
-                </defs>
-                <!-- 芯片主体 -->
-                <rect x="22" y="22" width="56" height="56" rx="6" fill="url(#chipGrad)" stroke="#00ffcc" stroke-width="1.5"/>
-                <!-- 内核 -->
-                <rect x="32" y="32" width="36" height="36" rx="3" fill="#0a0a1a" stroke="#00ffcc" stroke-width="0.5" opacity="0.6"/>
-                <!-- 核心电路纹路 -->
-                <line x1="38" y1="42" x2="62" y2="42" stroke="#00ffcc" stroke-width="0.8" opacity="0.5"/>
-                <line x1="38" y1="50" x2="58" y2="50" stroke="#ff6b9d" stroke-width="0.8" opacity="0.5"/>
-                <line x1="38" y1="58" x2="55" y2="58" stroke="#c084fc" stroke-width="0.8" opacity="0.5"/>
-                <circle cx="42" cy="42" r="1.5" fill="#00ffcc"/>
-                <circle cx="50" cy="50" r="1.5" fill="#ff6b9d"/>
-                <circle cx="46" cy="58" r="1.5" fill="#c084fc"/>
-                <!-- 引脚 -->
-                <g id="pins">
-                    <!-- 上 -->
-                    <rect x="32" y="14" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="42" y="14" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="52" y="14" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="62" y="14" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <!-- 下 -->
-                    <rect x="32" y="76" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="42" y="76" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="52" y="76" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="62" y="76" width="3" height="10" rx="1" fill="url(#pinGrad)"/>
-                    <!-- 左 -->
-                    <rect x="14" y="32" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="14" y="42" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="14" y="52" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="14" y="62" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <!-- 右 -->
-                    <rect x="76" y="32" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="76" y="42" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="76" y="52" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                    <rect x="76" y="62" width="10" height="3" rx="1" fill="url(#pinGrad)"/>
-                </g>
-            </svg>
+<main id="main">
+  <span class="hint-badge">◈ NFC LINK ESTABLISHED · 碰一碰已连接</span>
+
+  <!-- 芯片本体（可翻面） -->
+  <div class="chip-zone" id="chipHit" title="点我翻面">
+    <div class="float">
+      <div class="flip" id="flip">
+
+        <!-- 正面：18 芯片 die -->
+        <div class="face front">
+          <svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="dieG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#101c30"/><stop offset=".55" stop-color="#0a1424"/><stop offset="1" stop-color="#060b16"/>
+              </linearGradient>
+              <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffe9b8"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#e8a030"/>
+              </linearGradient>
+              <radialGradient id="dieSheen" cx=".3" cy=".25" r="1">
+                <stop offset="0" stop-color="rgba(0,229,255,.14)"/><stop offset=".5" stop-color="rgba(0,229,255,0)"/>
+              </radialGradient>
+            </defs>
+
+            <!-- 探测扫描环 -->
+            <g class="scan-ring" opacity=".5">
+              <circle cx="180" cy="150" r="126" fill="none" stroke="#00e5ff" stroke-width="1" stroke-dasharray="3 9" opacity=".5"/>
+              <circle cx="180" cy="150" r="126" fill="none" stroke="#00e5ff" stroke-width="2"
+                      stroke-dasharray="30 762" stroke-linecap="round"/>
+            </g>
+
+            <!-- PCB 走线 -->
+            <g fill="none" stroke="rgba(0,229,255,.4)" stroke-width="2">
+              <path d="M116,108 L88,108 L72,124 L58,124"/>
+              <path d="M116,150 L64,150"/>
+              <path d="M116,192 L88,192 L72,176 L58,176"/>
+              <path d="M244,108 L272,108 L288,124 L302,124"/>
+              <path d="M244,150 L296,150"/>
+              <path d="M244,192 L272,192 L288,176 L302,176"/>
+              <path d="M150,86 L150,58 L166,42 L166,30"/>
+              <path d="M210,86 L210,58 L194,42 L194,30"/>
+              <path d="M150,214 L150,242 L166,258 L166,270"/>
+              <path d="M210,214 L210,242 L194,258 L194,270"/>
+            </g>
+            <!-- 走线末端焊盘 -->
+            <g fill="#00e5ff">
+              <circle cx="54" cy="124" r="4"/><circle cx="60" cy="150" r="4"/><circle cx="54" cy="176" r="4"/>
+              <circle cx="306" cy="124" r="4"/><circle cx="300" cy="150" r="4"/><circle cx="306" cy="176" r="4"/>
+              <circle cx="166" cy="26" r="4"/><circle cx="194" cy="26" r="4"/>
+              <circle cx="166" cy="274" r="4"/><circle cx="194" cy="274" r="4"/>
+            </g>
+            <!-- 数据流脉冲 -->
+            <g fill="none" stroke="#aefcff" stroke-width="2" stroke-linecap="round">
+              <path class="flow-line"    d="M116,150 L64,150"/>
+              <path class="flow-line f2" d="M244,108 L272,108 L288,124 L302,124"/>
+              <path class="flow-line f3" d="M150,86 L150,58 L166,42 L166,30"/>
+              <path class="flow-line f2" d="M210,214 L210,242 L194,258 L194,270"/>
+            </g>
+
+            <!-- 芯片 die -->
+            <rect x="116" y="86" width="128" height="128" rx="10" fill="url(#dieG)" stroke="#00e5ff" stroke-width="1.6"/>
+            <rect x="116" y="86" width="128" height="128" rx="10" fill="url(#dieSheen)"/>
+            <!-- 键合焊盘 -->
+            <g fill="url(#goldG)" opacity=".92">
+              <rect x="128" y="94" width="9" height="9" rx="1.5"/><rect x="147" y="94" width="9" height="9" rx="1.5"/>
+              <rect x="204" y="94" width="9" height="9" rx="1.5"/><rect x="223" y="94" width="9" height="9" rx="1.5"/>
+              <rect x="128" y="197" width="9" height="9" rx="1.5"/><rect x="147" y="197" width="9" height="9" rx="1.5"/>
+              <rect x="204" y="197" width="9" height="9" rx="1.5"/><rect x="223" y="197" width="9" height="9" rx="1.5"/>
+              <rect x="124" y="128" width="9" height="9" rx="1.5"/><rect x="124" y="152" width="9" height="9" rx="1.5"/>
+              <rect x="227" y="128" width="9" height="9" rx="1.5"/><rect x="227" y="152" width="9" height="9" rx="1.5"/>
+            </g>
+
+            <!-- 丝印文字 -->
+            <text x="180" y="163" text-anchor="middle" font-family="Consolas, monospace"
+                  font-size="50" font-weight="bold" fill="url(#goldG)" letter-spacing="2">18</text>
+            <text x="180" y="120" text-anchor="middle" font-family="Consolas, monospace"
+                  font-size="9" letter-spacing="3" fill="#5f8ca8">SILICON GIFT CO.</text>
+            <text x="180" y="188" text-anchor="middle" font-family="Consolas, monospace"
+                  font-size="8.5" letter-spacing="2" fill="#5f8ca8">0x12 YEARS · MADE WITH LOVE</text>
+            <text x="180" y="203" text-anchor="middle" font-family="Consolas, monospace"
+                  font-size="7.5" letter-spacing="2" fill="#3a5a74">SN 2026-BDAY-∞</text>
+          </svg>
         </div>
 
-        <h1 class="title">🎂 生日快乐！</h1>
-        <p class="subtitle">Happy Birthday · 芯心相印</p>
-
-        <!-- 芯片特性卡片 -->
-        <div class="features">
-            <div class="feature-card">
-                <span class="feature-icon">🌈</span>
-                <div class="feature-title">五彩缤纷</div>
-                <div class="feature-desc">像晶圆上的多彩光刻，你的世界绚丽多姿，每一面都闪耀独特光芒</div>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">💎</span>
-                <div class="feature-title">坚如磐石</div>
-                <div class="feature-desc">如硅晶般稳固可靠，历经千锤百炼，始终坚定不移</div>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">✨</span>
-                <div class="feature-title">美丽且坚固</div>
-                <div class="feature-desc">纳米级的精致工艺，外表优雅动人，内在坚韧无比</div>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">⚡</span>
-                <div class="feature-title">精细又牢靠</div>
-                <div class="feature-desc">数以亿计的晶体管精密协作，细节之处见真章，稳定运行永不懈怠</div>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">🔥</span>
-                <div class="feature-title">高效赋能</div>
-                <div class="feature-desc">像CPU一样驱动着周围的一切，用智慧与热情点亮每个角落</div>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">🚀</span>
-                <div class="feature-title">持续进化</div>
-                <div class="feature-desc">从nm到更先进的制程，你永远在突破自我，迭代成长</div>
-            </div>
+        <!-- 背面：die 底面 QoQ 彩蛋 -->
+        <div class="face back">
+          <svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="backG" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#e8edf4"/><stop offset=".5" stop-color="#cdd6e4"/><stop offset="1" stop-color="#aeb9cc"/>
+              </linearGradient>
+            </defs>
+            <g fill="none" stroke="rgba(0,229,255,.25)" stroke-width="2">
+              <path d="M116,150 L64,150"/><path d="M244,150 L296,150"/>
+              <path d="M180,86 L180,40"/><path d="M180,214 L180,260"/>
+            </g>
+            <g fill="#00e5ff" opacity=".6">
+              <circle cx="60" cy="150" r="3.5"/><circle cx="300" cy="150" r="3.5"/>
+              <circle cx="180" cy="36" r="3.5"/><circle cx="180" cy="264" r="3.5"/>
+            </g>
+            <rect x="116" y="86" width="128" height="128" rx="10" fill="url(#backG)" stroke="#8b98ad" stroke-width="1.5"/>
+            <text x="180" y="164" text-anchor="middle" transform="rotate(-3 180 150)"
+                  font-family="Consolas, monospace" font-weight="bold" fill="#2a3450">
+              <tspan font-size="34">Q</tspan><tspan font-size="22" dy="-2">ᴗ</tspan><tspan font-size="34" dy="2">Q</tspan>
+            </text>
+            <text x="180" y="196" text-anchor="middle" font-family="Consolas,'PingFang SC',monospace"
+                  font-size="13" letter-spacing="3" fill="#4a5878">QoQ.core · 十八岁快乐呀</text>
+          </svg>
         </div>
 
-        <!-- 祝福语 -->
-        <div class="blessing">
-            <p class="blessing-text">
-                愿你如<span class="highlight">芯片</span>一般——<br><br>
-                拥有<span class="pink">五彩缤纷</span>的想象力，<br>
-                保持<span class="highlight">坚如磐石</span>的初心，<br>
-                成就<span class="purple">美丽且坚固</span>的人生，<br>
-                以<span class="pink">精细又牢靠</span>的态度对待每一件事。<br><br>
-                新的一岁，<span class="highlight">全速运算</span>，<span class="purple">超频快乐</span>！🎉
-            </p>
-        </div>
-
-        <!-- 蛋糕（点击吹蜡烛） -->
-        <div class="cake-container">
-            <div class="cake" id="cake" onclick="blowCandle()">
-                🎂<span class="flame">🕯️</span>
-            </div>
-            <p style="margin-top: 15px; color: rgba(255,255,255,0.4); font-size: 0.85rem;">✨ 点一下蛋糕吹蜡烛 ✨</p>
-        </div>
-
-        <!-- 底部 -->
-        <div class="signature">
-            Made with <span class="heart">❤️</span> and chips · 在这个特别的日子为你送上最「芯」的祝福
-        </div>
+      </div>
     </div>
+  </div>
+  <p class="flip-tip">点一下芯片 · <b>INSPECT_DIE</b> · 翻到背面</p>
 
-    <script>
-        // ====== 生成电路背景线 ======
-        const circuitBg = document.getElementById('circuitBg');
-        for (let i = 0; i < 12; i++) {
-            const line = document.createElement('div');
-            line.className = 'circuit-line';
-            line.style.top = Math.random() * 100 + '%';
-            line.style.width = (Math.random() * 200 + 100) + 'px';
-            line.style.animationDelay = Math.random() * 4 + 's';
-            line.style.animationDuration = (Math.random() * 3 + 3) + 's';
-            circuitBg.appendChild(line);
-        }
+  <div class="dear">TARGET_USER</div>
+  <div class="hero-name glitch gl-d1" id="toName">亲爱的你</div>
+  <div class="hero-cn glitch gl-d2">十八岁，生日快乐</div>
 
-        // ====== 生成浮动粒子 ======
-        const particlesContainer = document.getElementById('particles');
-        const colors = ['#00ffcc', '#ff6b9d', '#c084fc', '#60a5fa', '#fbbf24'];
-        for (let i = 0; i < 30; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            p.style.left = Math.random() * 100 + '%';
-            p.style.top = Math.random() * 100 + '%';
-            p.style.background = colors[Math.floor(Math.random() * colors.length)];
-            p.style.animationDelay = Math.random() * 6 + 's';
-            p.style.animationDuration = (Math.random() * 4 + 4) + 's';
-            p.style.boxShadow = `0 0 6px ${p.style.background}`;
-            particlesContainer.appendChild(p);
-        }
+  <!-- 工艺日志 -->
+  <section class="card">
+    <span class="ck"></span>
+    <div class="card-title"><span class="dot">●</span> PROCESS_LOG — 流片日志</div>
+    <div class="log-line"><span class="tag">[ OK ]</span> WAFER_FAB · 上千道工序，几百个日夜的打磨</div>
+    <div class="log-line"><span class="tag">[ OK ]</span> DIE_CUT · 从晶圆上切割下来，独一无二的存在</div>
+    <div class="log-line"><span class="tag g">[PASS]</span> <b>十八岁 · 流片成功</b> —— 往后每一道工序，都会让你更接近想要的自己</div>
+    <p class="log-note">// 你手里这两片小小的晶圆是真的。它们经历过的一切，从此替你见证。</p>
+  </section>
 
-        // ====== 吹蜡烛 + 烟花 ======
-        let candleBlown = false;
-        function blowCandle() {
-            if (candleBlown) return;
-            candleBlown = true;
-            document.getElementById('cake').classList.add('blown');
-            launchFireworks();
-        }
+  <!-- 信 -->
+  <section class="card" style="padding:0; overflow:hidden;">
+    <span class="ck"></span>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span id="termTitle">READ_ME.txt — /gift/</span></div>
+      <div class="term-body" id="letterBody"><span class="caret"></span></div>
+    </div>
+  </section>
 
-        // ====== 烟花效果 ======
-        const canvas = document.getElementById('fireworks');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+  <!-- 蛋糕 -->
+  <section class="cake-zone">
+    <p class="exe-label">>> RUNNING <b>MAKE_A_WISH.exe</b> …</p>
+    <div class="cake">
+      <div class="candle">
+        <div class="flame" id="flame"></div>
+        <div class="smoke" id="smoke"></div>
+      </div>
+      <div class="cake-body">
+        <div class="layer layer-2"><div class="icing"></div></div>
+        <div class="layer layer-1"><div class="icing"></div></div>
+      </div>
+      <div class="plate"></div>
+    </div>
+    <p class="blow-tip" id="blowTip">点一下 <span class="flame-word">烛火</span> → 吹灭蜡烛 · 写入愿望</p>
+  </section>
 
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+  <!-- 祝愿模块 -->
+  <section class="wishes" id="wishes"></section>
 
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 6 + 2;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                this.alpha = 1;
-                this.decay = Math.random() * 0.02 + 0.015;
-                this.size = Math.random() * 3 + 1;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vy += 0.08; // gravity
-                this.alpha -= this.decay;
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
+  <footer class="footer">
+    <div class="eot">═══ END OF TRANSMISSION ═══</div>
+    <p class="wafer-note">这枚小小的钥匙扣里，封存着一片<span class="cy">真实的硅晶圆</span><br>
+    <span class="gold">0x12</span> 岁 · 往后翻到它，就想起十八岁的今天，有人真心祝你快乐</p>
+    <p class="from-line" id="fromLine">—— 来自 很在乎你的人</p>
+    <p class="date-line" id="dateLine"></p>
+  </footer>
+</main>
 
-        let fireworksParticles = [];
+<script>
+/* ============ 个性化：?to=名字&from=署名 ============ */
+const qs = new URLSearchParams(location.search);
+const toName   = (qs.get('to')   || qs.get('name') || '').trim();
+const fromName = (qs.get('from') || '').trim();
 
-        function launchFireworks() {
-            const centers = [
-                { x: canvas.width * 0.3, y: canvas.height * 0.3 },
-                { x: canvas.width * 0.7, y: canvas.height * 0.35 },
-                { x: canvas.width * 0.5, y: canvas.height * 0.25 },
-                { x: canvas.width * 0.2, y: canvas.height * 0.45 },
-                { x: canvas.width * 0.8, y: canvas.height * 0.4 },
-            ];
+const nameEl = document.getElementById('toName');
+if (toName) nameEl.textContent = toName;
+nameEl.dataset.text = nameEl.textContent;
+const heroCnEl = document.querySelector('.hero-cn');
+heroCnEl.dataset.text = heroCnEl.textContent;
+const badgeEl = document.querySelector('.hint-badge');
+const eotEl = document.querySelector('.eot');
+if (fromName) document.getElementById('fromLine').textContent = '—— 来自 ' + fromName;
+document.getElementById('termTitle').textContent = 'READ_ME.txt — /gift/' + (toName || 'you');
+document.title = toName ? ('致 ' + toName + ' 的十八岁') : '十八岁生日快乐';
 
-            centers.forEach((center, i) => {
-                setTimeout(() => {
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    for (let j = 0; j < 60; j++) {
-                        fireworksParticles.push(new Particle(center.x, center.y, color));
-                    }
-                }, i * 300);
-            });
+const dateLine = document.getElementById('dateLine');
+const d = new Date();
+dateLine.textContent = '// ' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 
-            animateFireworks();
-        }
+/* ============ 信件全文 ============ */
+const letterText =
+  '十八岁了呀。\n' +
+  '从今天起，你是法律意义上的大人了，\n' +
+  '可在我这里，你永远可以做那个开怀大笑的小孩。\n\n' +
+  '愿你往后的每一步，都走在自己选择的路上；\n' +
+  '愿你所有的认真都有回响，所有的热爱都不被辜负；\n' +
+  '愿你被这个世界温柔以待，\n' +
+  '也永远有勇气，温柔地对待这个世界。\n\n' +
+  '十八岁快乐。\n' +
+  '往后年年，都要闪闪发光。';
 
-        function animateFireworks() {
-            if (fireworksParticles.length === 0) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            fireworksParticles = fireworksParticles.filter(p => p.alpha > 0);
-            fireworksParticles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animateFireworks);
-        }
-    </script>
+/* ============ 背景：星点 + 二进制数据雨 ============ */
+const sc = document.getElementById('stars'), sctx = sc.getContext('2d');
+let stars = [], bits = [];
+function initBg(){
+  sc.width = innerWidth * devicePixelRatio;
+  sc.height = innerHeight * devicePixelRatio;
+  sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  stars = Array.from({length:90}, () => ({
+    x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+    r: Math.random()*1.3 + .3, p: Math.random()*Math.PI*2, s: Math.random()*.9 + .3
+  }));
+  bits = Array.from({length:24}, () => ({
+    x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+    v: Math.random()*.5 + .2, ch: Math.random() < .5 ? '0' : '1',
+    a: Math.random()*.2 + .08
+  }));
+}
+function drawBg(t){
+  sctx.clearRect(0,0,innerWidth,innerHeight);
+  sctx.font = '11px Consolas, monospace';
+  for (const st of stars){
+    const a = .2 + .6*Math.abs(Math.sin(t/1400*st.s + st.p));
+    sctx.globalAlpha = a; sctx.fillStyle = '#bfe8ff';
+    sctx.beginPath(); sctx.arc(st.x, st.y, st.r, 0, 7); sctx.fill();
+  }
+  for (const b of bits){
+    b.y += b.v;
+    if (b.y > innerHeight + 12){ b.y = -12; b.x = Math.random()*innerWidth; b.ch = Math.random() < .5 ? '0' : '1'; }
+    sctx.globalAlpha = b.a; sctx.fillStyle = '#00e5ff';
+    sctx.fillText(b.ch, b.x, b.y);
+  }
+  for (let i = glyphs.length - 1; i >= 0; i--){
+    const g = glyphs[i]; g.ttl--;
+    if (g.ttl <= 0){ glyphs.splice(i, 1); continue; }
+    sctx.globalAlpha = .55;
+    sctx.fillStyle = ['#00e5ff', '#ff3d81', '#f2f5fb'][g.ttl % 3];
+    sctx.font = '13px Consolas, monospace';
+    sctx.fillText(g.ch, g.x + (Math.random()*4 - 2), g.y);
+  }
+  sctx.globalAlpha = 1;
+  requestAnimationFrame(drawBg);
+}
+initBg();
+requestAnimationFrame(drawBg);
+addEventListener('resize', initBg);
+
+/* ============ 彩带（数据碎片） ============ */
+const cc = document.getElementById('confetti'), cctx = cc.getContext('2d');
+let confetti = [];
+function sizeConfetti(){
+  cc.width = innerWidth * devicePixelRatio; cc.height = innerHeight * devicePixelRatio;
+  cctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+sizeConfetti(); addEventListener('resize', sizeConfetti);
+
+const PALETTE = ['#00e5ff','#7df9ff','#ffc857','#ffe9b8','#3ddc84','#d8c7ff','#f2f5fb'];
+function burst(x = innerWidth/2, y = innerHeight/2, n = 140){
+  for (let i = 0; i < n; i++){
+    const ang = Math.random()*Math.PI*2, v = Math.random()*9 + 3;
+    confetti.push({
+      x, y, vx: Math.cos(ang)*v, vy: Math.sin(ang)*v - 4,
+      w: Math.random()*7 + 4, h: Math.random()*4 + 3,
+      c: PALETTE[Math.floor(Math.random()*PALETTE.length)],
+      rot: Math.random()*Math.PI, vr:(Math.random()-.5)*.3,
+      life: 1
+    });
+  }
+}
+function drawConfetti(){
+  cctx.clearRect(0,0,innerWidth,innerHeight);
+  confetti = confetti.filter(p => p.life > 0 && p.y < innerHeight + 40);
+  for (const p of confetti){
+    p.vy += .22; p.vx *= .992;
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= .006;
+    cctx.save();
+    cctx.translate(p.x, p.y); cctx.rotate(p.rot);
+    cctx.globalAlpha = Math.max(0, p.life);
+    cctx.fillStyle = p.c;
+    cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    cctx.restore();
+  }
+  requestAnimationFrame(drawConfetti);
+}
+requestAnimationFrame(drawConfetti);
+
+/* ============ 音频：共享上下文 + 自动播放兜底 ============ */
+let audioCtx = null, songPlayed = false;
+function tryStartSong(){
+  if (songPlayed || !opened || !audioCtx || audioCtx.state !== 'running') return;
+  songPlayed = true;
+  scheduleSong(audioCtx);
+}
+function ensureAudio(){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx){
+      audioCtx = new AC();
+      audioCtx.addEventListener('statechange', tryStartSong);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    tryStartSong();
+  } catch(e){ /* 无声也无妨 */ }
+}
+function scheduleSong(ac){
+  const N = {G4:392, A4:440, B4:494, C5:523, D5:587, E5:659, F5:698, G5:784};
+  const song = [
+    ['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
+    ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
+    ['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],
+    ['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',2]
+  ];
+  const beat = .42; let t0 = ac.currentTime + .1;
+  for (const [note, b] of song){
+    const dur = b * beat;
+    const osc = ac.createOscillator(), g = ac.createGain();
+    osc.type = 'triangle'; osc.frequency.value = N[note];
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(.16, t0 + .03);
+    g.gain.exponentialRampToValueAtTime(.001, t0 + dur * .95);
+    osc.connect(g).connect(ac.destination);
+    osc.start(t0); osc.stop(t0 + dur);
+    t0 += dur;
+  }
+}
+
+/* ============ 启动日志 ============ */
+const bootLines = [
+  ['> POWER_ON_SELF_TEST .......... ', 'OK'],
+  ['> NFC_FIELD_DETECTED .......... ', 'OK'],
+  ['> WAFER_INTEGRITY ............. ', '100%'],
+  ['> LOADING MEMORIES 2010-2026 .. ', 'OK'],
+  ['> AGE_CHECK: 0x12 (18) ........ ', 'PASS'],
+  ['> TARGET_USER: ', toName || '亲爱的你'],
+  ['> WISH_BUFFER_OVERFLOW ........ ', 'ERR!', 'err'],
+  ['> RETRY :: 祝福注入 ×∞ ......... ', 'OK'],
+  ['> DECRYPTING ', 'GIFT_v18.bin …']
+];
+const bootLog = document.getElementById('bootLog');
+(function runBoot(i){
+  if (i >= bootLines.length){
+    document.getElementById('bootPrompt').style.display = 'block';
+    document.getElementById('bootSub').style.display = 'block';
+    setTimeout(decrypt, 1400);          // 引导走完自动解密，无需轻触
+    return;
+  }
+  const [a, b, cls2] = bootLines[i];
+  const cls = cls2 || (b === 'PASS' ? 'gold' : (i === bootLines.length - 1 ? 'cy' : ''));
+  bootLog.innerHTML += (a.replace('> ','<span class="dim">&gt; </span>')) +
+    (cls ? '<span class="' + cls + '">' + b + '</span>' : b) + '\n';
+  setTimeout(() => runBoot(i + 1), i === bootLines.length - 1 ? 420 : 240);
+})(0);
+requestAnimationFrame(() => requestAnimationFrame(() =>
+  document.getElementById('bootFill').style.width = '100%'));
+
+/* ============ 故障引擎 ============ */
+const GCH = 'アイウエオ01<>/#$%&@=?;'.split('');
+let glyphs = [];
+setInterval(() => {
+  if (Math.random() < .75 && glyphs.length < 6)
+    glyphs.push({ x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+                  ch: GCH[Math.random()*GCH.length|0], ttl: 7 });
+}, 2600);
+
+function staticBurst(){
+  try {
+    ensureAudio();
+    if (!audioCtx || audioCtx.state !== 'running') return;   // 自动播放被拦就不出声
+    const ac = audioCtx;
+    const len = Math.floor(ac.sampleRate * .09);
+    const buf = ac.createBuffer(1, len, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1) * (1 - i/len);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const g = ac.createGain(); g.gain.value = .045;
+    const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1200;
+    src.connect(f); f.connect(g); g.connect(ac.destination); src.start();
+  } catch(e){ /* 静音环境忽略 */ }
+}
+
+function pageGlitch(){
+  const bars = document.getElementById('glitchBars');
+  bars.innerHTML = '';
+  const cols = ['rgba(0,229,255,.28)', 'rgba(255,61,129,.24)', 'rgba(255,255,255,.14)'];
+  for (let i = 0; i < 3; i++){
+    const b = document.createElement('i');
+    b.style.cssText = 'position:absolute;left:0;right:0;top:' + (Math.random()*92) +
+      '%;height:' + (2 + Math.random()*11) + 'px;background:' + cols[i] +
+      ';transform:translateX(' + (Math.random()*12 - 6).toFixed(1) + 'px)';
+    bars.appendChild(b);
+  }
+  document.body.classList.add('glitching');
+  setTimeout(() => {
+    document.body.classList.remove('glitching');
+    bars.innerHTML = '';
+  }, 320);
+}
+
+function chipGlitch(){
+  const z = document.querySelector('.chip-zone');
+  z.classList.remove('chip-glitch');
+  void z.offsetWidth;               // 重启动画
+  z.classList.add('chip-glitch');
+  setTimeout(() => z.classList.remove('chip-glitch'), 380);
+}
+
+const SCRAMBLE_CHARS = '!<>-_\\/[]{}=+*^?#01アイウエオ';
+function scramble(el){
+  if (!el || el._scrambling) return;
+  el._scrambling = true;
+  const orig = el.dataset.text || el.textContent;
+  let frame = 0; const total = 22;
+  const iv = setInterval(() => {
+    frame++;
+    const solved = Math.floor(orig.length * frame / total);
+    let out = orig.slice(0, solved);
+    for (let i = solved; i < orig.length; i++)
+      out += /\s/.test(orig[i]) ? orig[i] : SCRAMBLE_CHARS[Math.random()*SCRAMBLE_CHARS.length|0];
+    el.textContent = out;
+    if (frame >= total){ clearInterval(iv); el.textContent = orig; el._scrambling = false; }
+  }, 42);
+}
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function glitchLoop(){
+  if (reduceMotion) return;
+  setTimeout(() => {
+    if (opened){
+      const r = Math.random();
+      if (r < .38){ pageGlitch(); staticBurst(); }
+      else if (r < .68) scramble([nameEl, heroCnEl, badgeEl, eotEl][Math.random()*4|0]);
+      else chipGlitch();
+    }
+    glitchLoop();
+  }, 2600 + Math.random()*2400);
+}
+
+/* ============ 自动解密（点按 = 跳过引导） ============ */
+const unbox = document.getElementById('unbox');
+const main = document.getElementById('main');
+let opened = false;
+function decrypt(){
+  if (opened) return; opened = true;
+  ensureAudio();                       // 直接尝试开播；被拦则等首次触摸补播
+  unbox.classList.add('glitch-out');
+  pageGlitch();
+  setTimeout(() => {
+    unbox.classList.add('hidden');
+    main.classList.add('revealed');
+    burst(innerWidth/2, innerHeight*.35, 160);
+    typeLetter();
+    setTimeout(() => burst(innerWidth*.25, innerHeight*.3, 70), 900);
+    setTimeout(() => burst(innerWidth*.75, innerHeight*.3, 70), 1400);
+    glitchLoop();
+  }, 300);
+}
+unbox.addEventListener('click', decrypt);   // 手快点一下 = 跳过等待
+['pointerdown','touchstart'].forEach(ev =>
+  addEventListener(ev, ensureAudio, { passive:true }));
+
+/* ============ 芯片翻面 ============ */
+document.getElementById('chipHit').addEventListener('click', () => {
+  document.getElementById('flip').classList.toggle('flipped');
+  staticBurst();
+});
+
+/* ============ 打字机信件 ============ */
+let typed = false;
+function typeLetter(){
+  if (typed) return; typed = true;
+  const el = document.getElementById('letterBody');
+  let i = 0;
+  (function tick(){
+    if (i <= letterText.length){
+      el.innerHTML = letterText.slice(0, i).replace(/\n/g,'<br>') +
+        '<span class="caret"></span>';
+      i++; setTimeout(tick, letterText[i-1] === '\n' ? 260 : 85);
+    } else {
+      el.innerHTML = letterText.replace(/\n/g,'<br>');
+      showWishes();
+    }
+  })();
+}
+
+/* ============ 吹蜡烛 ============ */
+const flame = document.getElementById('flame');
+const smoke = document.getElementById('smoke');
+const blowTip = document.getElementById('blowTip');
+let blown = false;
+flame.addEventListener('click', () => {
+  if (blown) return; blown = true;
+  flame.classList.add('out');
+  smoke.classList.add('rise');
+  burst(flame.getBoundingClientRect().left + 8, flame.getBoundingClientRect().top, 110);
+  blowTip.classList.add('done');
+  blowTip.innerHTML = 'WISH_ENCRYPTED ✓ 愿望已写入 · 十八岁生日快乐';
+});
+
+/* ============ 祝愿模块 ============ */
+const wishWords = ['万事胜意','前程似锦','得偿所愿','被爱包围','永远热烈','平安喜乐'];
+const wishWrap = document.getElementById('wishes');
+wishWords.forEach(w => {
+  const s = document.createElement('span');
+  s.className = 'wish'; s.textContent = w;
+  wishWrap.appendChild(s);
+});
+function showWishes(){
+  document.querySelectorAll('.wish').forEach((w, i) =>
+    setTimeout(() => w.classList.add('show'), i * 160));
+}
+</script>
 </body>
 </html>
