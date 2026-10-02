@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0a0e27">
+<meta name="theme-color" content="#0b0d18">
 <title>十八岁生日快乐</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -12,29 +12,27 @@ html, body { height:100%; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-  background:#0a0e27;
+  background:radial-gradient(120% 90% at 50% 0%, #1a1d30 0%, #10121f 45%, #0a0b14 100%);
   color:#f0ead6;
   overflow-x:hidden;
   min-height:100vh;
 }
 
-/* ---------- 背景：星空 + 极光 ---------- */
+/* ---------- 背景 ---------- */
 #stars { position:fixed; inset:0; z-index:0; }
 #confetti { position:fixed; inset:0; z-index:60; pointer-events:none; }
 
-.aurora {
-  position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-}
+.aurora { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
 .aurora::before, .aurora::after {
   content:""; position:absolute; width:70vmax; height:70vmax; border-radius:50%;
-  filter:blur(90px); opacity:.22;
+  filter:blur(100px); opacity:.16;
 }
 .aurora::before {
-  background:radial-gradient(circle, #7f6cff 0%, transparent 60%);
+  background:radial-gradient(circle, #8ea8ff 0%, transparent 60%);
   top:-30vmax; left:-20vmax; animation:drift1 26s ease-in-out infinite alternate;
 }
 .aurora::after {
-  background:radial-gradient(circle, #ff6c9f 0%, transparent 60%);
+  background:radial-gradient(circle, #ff9ac8 0%, transparent 60%);
   bottom:-35vmax; right:-25vmax; animation:drift2 32s ease-in-out infinite alternate;
 }
 @keyframes drift1 { to { transform:translate(12vmax,8vmax) scale(1.15); } }
@@ -43,14 +41,14 @@ body {
 /* ---------- 拆礼物遮罩 ---------- */
 #unbox {
   position:fixed; inset:0; z-index:100;
-  background:rgba(6,9,30,.82);
+  background:rgba(8,10,22,.86);
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   cursor:pointer; transition:opacity .8s ease, visibility .8s;
 }
 #unbox.hidden { opacity:0; visibility:hidden; }
 .giftbox {
-  filter:drop-shadow(0 0 30px rgba(255,150,190,.45));
+  filter:drop-shadow(0 0 32px rgba(200,190,255,.4));
   animation:giftBounce 1.6s ease-in-out infinite;
 }
 @keyframes giftBounce {
@@ -58,14 +56,14 @@ body {
   50% { transform:translateY(-18px) rotate(3deg); }
 }
 .unbox-title {
-  margin-top:34px; font-size:26px; letter-spacing:.12em; font-weight:600;
-  background:linear-gradient(90deg,#ffd6e8,#ffe9b8,#c2f0ff,#ffd6e8);
+  margin-top:34px; font-size:25px; letter-spacing:.12em; font-weight:600;
+  background:linear-gradient(90deg,#dfe6ff,#c2f0ff,#ffd6e8,#ffe9b8,#dfe6ff);
   background-size:300% 100%;
   -webkit-background-clip:text; background-clip:text; color:transparent;
   animation:shimmer 4s linear infinite;
 }
 .unbox-sub {
-  margin-top:14px; font-size:13px; color:#8a90b8; letter-spacing:.3em;
+  margin-top:14px; font-size:13px; color:#78809f; letter-spacing:.3em;
   animation:pulse 2s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
@@ -75,91 +73,141 @@ body {
 main {
   position:relative; z-index:1;
   max-width:520px; margin:0 auto;
-  padding:64px 24px 80px;
+  padding:40px 24px 80px;
   opacity:0; transition:opacity 1.2s ease;
 }
 main.revealed { opacity:1; }
 
 .hint-badge {
-  display:inline-block; font-size:11px; letter-spacing:.25em;
+  display:block; width:max-content; margin:0 auto 8px;
+  font-size:11px; letter-spacing:.25em;
   color:#9aa3d0; border:1px solid rgba(154,163,208,.35);
-  padding:6px 14px; border-radius:999px; margin-bottom:26px;
+  padding:6px 14px; border-radius:999px;
+}
+
+/* ---------- 钥匙扣吊坠 ---------- */
+.pendant-wrap {
+  perspective:1000px;
+  width:min(72vw, 264px);
+  margin:6px auto 0;
+  cursor:pointer;
+  -webkit-user-select:none; user-select:none;
+  position:relative;
+}
+.halo {
+  position:absolute; left:50%; top:56%; width:150%; height:150%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:conic-gradient(from 0deg,
+    rgba(255,214,232,.10), rgba(194,240,255,.10), rgba(216,199,255,.10),
+    rgba(255,233,184,.10), rgba(255,179,193,.10), rgba(142,240,216,.10),
+    rgba(255,214,232,.10));
+  filter:blur(26px);
+  animation:spin 16s linear infinite;
+  pointer-events:none;
+}
+@keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+.swing {
+  position:relative;
+  transform-origin:50% 42px;
+  animation:swing 4.2s ease-in-out infinite alternate;
+}
+@keyframes swing {
+  from { transform:rotate(2.6deg); }
+  to   { transform:rotate(-2.6deg); }
+}
+.flip {
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 1s cubic-bezier(.25,.7,.3,1.15);
+}
+.flip.flipped { transform:rotateY(180deg); }
+.face { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.face svg { display:block; width:100%; height:auto; filter:drop-shadow(0 22px 34px rgba(0,0,0,.55)); }
+.face.back { position:absolute; inset:0; transform:rotateY(180deg); }
+
+.flip-tip {
+  text-align:center; margin-top:16px; font-size:12.5px;
+  color:#78809f; letter-spacing:.18em;
+  animation:pulse 2.4s ease-in-out infinite;
 }
 
 .dear {
-  font-size:15px; color:#b8a56a; letter-spacing:.2em; margin-bottom:6px;
+  margin-top:26px; text-align:center;
+  font-size:13px; color:#9d94b8; letter-spacing:.35em; text-indent:.35em;
 }
-
 .hero-name {
-  font-size:clamp(30px, 9vw, 44px); font-weight:700; letter-spacing:.06em;
-  color:#fdf6e3; text-shadow:0 0 24px rgba(150,130,255,.45);
-  margin-bottom:18px; word-break:break-all;
+  text-align:center; margin-top:8px;
+  font-size:clamp(30px, 9vw, 42px); font-weight:700; letter-spacing:.08em;
+  color:#fdf6e3; text-shadow:0 0 26px rgba(160,150,255,.5);
+  word-break:break-all;
 }
-
-.big18 {
-  font-size:clamp(110px, 32vw, 190px);
-  font-weight:800; line-height:1; letter-spacing:-.02em;
-  background:linear-gradient(115deg,#ffd6e8 0%,#c2f0ff 22%,#d8c7ff 45%,#ffe9b8 68%,#ffb3c1 85%,#8ef0d8 100%);
+.hero-cn {
+  margin-top:14px; text-align:center;
+  font-size:20px; font-weight:600; letter-spacing:.28em; text-indent:.28em;
+  background:linear-gradient(90deg,#dfe6ff,#ffd6e8,#ffe9b8,#c2f0ff,#dfe6ff);
   background-size:280% 100%;
   -webkit-background-clip:text; background-clip:text; color:transparent;
   animation:shimmer 6s linear infinite;
-  filter:drop-shadow(0 6px 40px rgba(160,140,255,.35));
-  user-select:none;
-}
-.hero-sub {
-  margin-top:10px; font-size:13px; letter-spacing:.55em; text-indent:.55em;
-  color:#7d84b0;
-}
-.hero-cn {
-  margin-top:22px; font-size:22px; font-weight:600; letter-spacing:.3em; text-indent:.3em;
-  color:#e8dfc8;
 }
 
 .divider {
-  margin:40px auto 0; width:120px; height:1px;
-  background:linear-gradient(90deg,transparent,#b8a56a,transparent);
+  margin:38px auto 0; width:120px; height:1px;
+  background:linear-gradient(90deg,transparent,#aab3d4,transparent);
   position:relative;
 }
 .divider::after {
   content:"✦"; position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%); color:#b8a56a; font-size:11px;
-  background:#0a0e27; padding:0 8px;
+  transform:translate(-50%,-50%); color:#aab3d4; font-size:11px;
+  background:#10121f; padding:0 8px;
 }
 
-/* 信 */
-.letter {
-  margin-top:36px;
+/* ---------- 卡片通用 ---------- */
+.card {
+  margin-top:32px;
   background:rgba(255,255,255,.045);
-  border:1px solid rgba(255,255,255,.09);
+  border:1px solid rgba(214,222,248,.13);
   border-radius:20px;
-  padding:30px 24px;
+  padding:28px 24px;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+  position:relative; overflow:hidden;
 }
-.letter-title { font-size:13px; letter-spacing:.4em; color:#8a90b8; margin-bottom:20px; }
+.card::before {
+  content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,#ffd6e8,#ffe9b8,#8ef0d8,#c2f0ff,#d8c7ff,#ffd6e8);
+  opacity:.75;
+}
+.card-title { font-size:13px; letter-spacing:.4em; color:#8a90b8; margin-bottom:20px; }
+
+/* 为什么是晶圆 */
+.wafer-fact p {
+  font-size:15px; line-height:2.1; color:#e9e4d4; text-align:justify;
+}
+.wafer-fact p + p { margin-top:14px; }
+.wafer-fact b { color:#ffe9b8; font-weight:600; }
+.fact-small { font-size:13px !important; color:#8a90b8 !important; line-height:2 !important; }
+
+/* 信 */
 .letter-body {
   font-size:16px; line-height:2.15; color:#e9e4d4; min-height:280px;
   white-space:pre-wrap; text-align:justify;
 }
 .letter-body .caret {
-  display:inline-block; width:2px; height:1em; background:#b8a56a;
+  display:inline-block; width:2px; height:1em; background:#ffe9b8;
   vertical-align:-.12em; margin-left:2px;
   animation:caret 1s step-end infinite;
 }
 @keyframes caret { 50% { opacity:0; } }
 
-/* 蜡烛 */
-.cake-zone {
-  margin-top:44px; text-align:center;
-}
-.cake {
-  position:relative; width:150px; margin:0 auto;
-  animation:cakeIn 1s ease .2s backwards;
-}
+/* ---------- 蜡烛 ---------- */
+.cake-zone { margin-top:40px; text-align:center; }
+.cake { position:relative; width:150px; margin:0 auto; animation:cakeIn 1s ease .2s backwards; }
 @keyframes cakeIn { from { opacity:0; transform:translateY(24px) scale(.9); } }
 
 .candle { position:relative; width:8px; height:44px; margin:0 auto; z-index:3;
-  background:repeating-linear-gradient(45deg,#fff 0 4px,#ff8fa3 4px 8px);
+  background:repeating-linear-gradient(45deg,#e8ecf5 0 4px,#a8b8e8 4px 8px);
   border-radius:4px 4px 0 0;
 }
 .flame {
@@ -187,41 +235,39 @@ main.revealed { opacity:1; }
   100% { opacity:0; transform:translateY(-46px) scale(1.8); }
 }
 
-.cake-body { margin-top:0; }
 .layer { border-radius:10px; margin:0 auto; position:relative; }
-.layer-1 { width:150px; height:46px; background:linear-gradient(#ffd9e2,#ffb6c9); }
-.layer-2 { width:112px; height:40px; background:linear-gradient(#fff0d9,#ffdca8); top:-8px; position:relative; }
+.layer-1 { width:150px; height:46px; background:linear-gradient(#e8ddda,#cbb3c9); }
+.layer-2 { width:112px; height:40px; background:linear-gradient(#f2ead9,#dcC8a8); top:-8px; position:relative; }
 .layer .icing { position:absolute; top:-2px; left:0; right:0; height:14px;
-  background:radial-gradient(circle at 10px -4px, transparent 12px, #fff 13px);
+  background:radial-gradient(circle at 10px -4px, transparent 12px, #f6f8fb 13px);
   background-size:20px 18px; border-radius:10px 10px 0 0; }
 .plate { width:170px; height:12px; margin:-6px auto 0; border-radius:50%;
-  background:linear-gradient(#3a4066,#232848); }
+  background:linear-gradient(#c3c9da,#767e9c); }
 
 .blow-tip { margin-top:18px; font-size:13px; color:#8a90b8; letter-spacing:.15em; }
 .blow-tip .flame-word { color:#ffcf5c; }
-.blow-tip.done { color:#b8a56a; }
+.blow-tip.done { color:#ffe9b8; }
 
 /* 祝愿 */
-.wishes { margin-top:44px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.wishes { margin-top:40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
 .wish {
   font-size:14px; letter-spacing:.12em; padding:10px 18px; border-radius:999px;
-  background:linear-gradient(120deg,rgba(127,108,255,.18),rgba(255,108,159,.18));
-  border:1px solid rgba(184,165,106,.4); color:#f0ead6;
+  background:linear-gradient(120deg,rgba(142,163,255,.14),rgba(255,154,200,.14));
+  border:1px solid rgba(170,179,212,.4); color:#f0ead6;
   opacity:0; transform:translateY(14px); transition:all .6s ease;
 }
 .wish.show { opacity:1; transform:none; }
 
 /* 页脚 */
-.footer { margin-top:60px; text-align:center; }
-.wafer-note {
-  font-size:13px; line-height:2; color:#8a90b8;
-}
+.footer { margin-top:56px; text-align:center; }
+.footer .three-stars { color:#aab3d4; font-size:13px; letter-spacing:.6em; text-indent:.6em; opacity:.85; }
+.wafer-note { margin-top:14px; font-size:13px; line-height:2; color:#8a90b8; }
 .wafer-note .glow { color:#d8c7ff; }
 .from-line { margin-top:16px; font-size:14px; color:#b8a56a; letter-spacing:.1em; }
 .date-line { margin-top:6px; font-size:12px; color:#5d6387; letter-spacing:.2em; }
 
 @media (max-width:360px) {
-  .letter { padding:24px 18px; }
+  .card { padding:24px 18px; }
 }
 </style>
 </head>
@@ -231,20 +277,17 @@ main.revealed { opacity:1; }
 <div class="aurora"></div>
 
 <div id="unbox">
-  <svg class="giftbox" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+  <svg class="giftbox" viewBox="0 0 120 120" width="110" height="110" aria-hidden="true">
     <defs>
       <linearGradient id="gBody" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#ff9ab8"/><stop offset="1" stop-color="#c86dd7"/>
-      </linearGradient>
-      <linearGradient id="gLid" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#ffb3c9"/><stop offset="1" stop-color="#d98ae0"/>
+        <stop offset="0" stop-color="#9fb0e8"/><stop offset="1" stop-color="#c88ae0"/>
       </linearGradient>
     </defs>
     <rect x="20" y="52" width="80" height="56" rx="8" fill="url(#gBody)"/>
-    <rect x="14" y="40" width="92" height="18" rx="6" fill="url(#gLid)"/>
-    <rect x="53" y="40" width="14" height="68" fill="#ffe9b8" opacity=".92"/>
+    <rect x="14" y="40" width="92" height="18" rx="6" fill="#dfe6ff"/>
+    <rect x="53" y="40" width="14" height="68" fill="#10121f" opacity=".85"/>
     <path d="M60 40 C 42 38, 34 22, 44 16 C 54 10, 60 26, 60 40 C 60 26, 66 10, 76 16 C 86 22, 78 38, 60 40 Z"
-          fill="#ffe9b8" opacity=".95"/>
+          fill="#dfe6ff"/>
   </svg>
   <div class="unbox-title">碰一下，拆开你的十八岁</div>
   <div class="unbox-sub">TAP TO OPEN</div>
@@ -255,16 +298,144 @@ main.revealed { opacity:1; }
 <main id="main">
   <span class="hint-badge">◈ 一份碰一碰专属礼物</span>
 
+  <!-- 钥匙扣吊坠（复刻礼物本体） -->
+  <div class="pendant-wrap" id="pendantHit" title="点我翻面">
+    <div class="halo"></div>
+    <div class="swing">
+      <div class="flip" id="flip">
+
+        <!-- 正面：银色闪光底 + 两片晶圆 + 三颗星 -->
+        <div class="face front">
+          <svg viewBox="0 0 200 320" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f4f7fd"/><stop offset=".5" stop-color="#9aa3b8"/><stop offset="1" stop-color="#e8ecf5"/>
+              </linearGradient>
+              <radialGradient id="resin" cx=".35" cy=".3" r="1">
+                <stop offset="0" stop-color="#f2f4fa"/><stop offset=".45" stop-color="#c3c9da"/>
+                <stop offset=".78" stop-color="#9aa1b8"/><stop offset="1" stop-color="#767d96"/>
+              </radialGradient>
+              <linearGradient id="ringM" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f4f7fd"/><stop offset=".55" stop-color="#8b93aa"/><stop offset="1" stop-color="#dfe4f0"/>
+              </linearGradient>
+              <linearGradient id="wafer" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#0c101c"/><stop offset=".45" stop-color="#22354a"/>
+                <stop offset=".7" stop-color="#2e4d4a"/><stop offset="1" stop-color="#121826"/>
+              </linearGradient>
+              <linearGradient id="rainbowChip" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffd6e8"/><stop offset=".22" stop-color="#ffe9b8"/>
+                <stop offset=".42" stop-color="#8ef0d8"/><stop offset=".62" stop-color="#c2f0ff"/>
+                <stop offset=".8" stop-color="#d8c7ff"/><stop offset="1" stop-color="#ffb3c1"/>
+              </linearGradient>
+              <pattern id="grating" width="4" height="4" patternUnits="userSpaceOnUse">
+                <rect width="4" height="4" fill="none"/>
+                <line x1="0" y1="0" x2="0" y2="4" stroke="rgba(10,12,24,.28)" stroke-width="1.4"/>
+              </pattern>
+              <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="rgba(255,255,255,.5)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/>
+              </linearGradient>
+              <path id="star" d="M0,-6 L1.8,-1.9 L6,-1.9 L2.6,1.2 L3.9,5.6 L0,3 L-3.9,5.6 L-2.6,1.2 L-6,-1.9 L-1.8,-1.9 Z"/>
+            </defs>
+
+            <!-- 钥匙圈 + 链条 -->
+            <circle cx="100" cy="44" r="33" fill="none" stroke="url(#ringM)" stroke-width="9"/>
+            <ellipse cx="100" cy="92" rx="8.5" ry="12" fill="none" stroke="url(#ringM)" stroke-width="4.5"/>
+            <ellipse cx="100" cy="108" rx="8.5" ry="12" fill="none" stroke="url(#ringM)" stroke-width="4.5"/>
+            <ellipse cx="100" cy="123" rx="7" ry="9.5" fill="none" stroke="url(#ringM)" stroke-width="4"/>
+            <circle cx="100" cy="138" r="7" fill="none" stroke="url(#ringM)" stroke-width="4"/>
+
+            <!-- 滴胶圆盘 -->
+            <circle cx="100" cy="212" r="79" fill="url(#resin)" stroke="url(#rim)" stroke-width="5"/>
+
+            <!-- 闪粉 -->
+            <g fill="#ffffff">
+              <circle cx="52" cy="176" r="1.2" opacity=".55"/><circle cx="146" cy="168" r="1" opacity=".4"/>
+              <circle cx="66" cy="252" r="1.1" opacity=".5"/><circle cx="132" cy="262" r="1.3" opacity=".45"/>
+              <circle cx="42" cy="222" r=".9" opacity=".35"/><circle cx="160" cy="228" r="1" opacity=".4"/>
+              <circle cx="86" cy="156" r=".9" opacity=".5"/><circle cx="118" cy="152" r="1" opacity=".4"/>
+              <circle cx="150" cy="200" r=".8" opacity=".35"/><circle cx="48" cy="204" r="1" opacity=".4"/>
+              <circle cx="106" cy="282" r=".9" opacity=".4"/><circle cx="72" cy="286" r=".8" opacity=".3"/>
+            </g>
+            <ellipse cx="74" cy="172" rx="46" ry="18" fill="url(#sheen)" opacity=".32" transform="rotate(-24 74 172)"/>
+
+            <!-- 顶部小字 18 -->
+            <text x="100" y="166" text-anchor="middle" font-size="13" letter-spacing="2"
+                  fill="#39415a" opacity=".85" font-family="Georgia, serif" font-weight="bold">· 18 ·</text>
+
+            <!-- 晶圆 die（左） -->
+            <rect x="60" y="182" width="46" height="46" rx="3" fill="url(#wafer)" stroke="#05070d" stroke-width="1.5"/>
+            <rect x="60" y="182" width="46" height="46" rx="3" fill="url(#sheen)" opacity=".14"/>
+
+            <!-- 彩虹光栅芯片（右） -->
+            <rect x="113" y="196" width="34" height="54" rx="2" fill="url(#rainbowChip)" stroke="#05070d" stroke-width="1.5"/>
+            <rect x="113" y="196" width="34" height="54" rx="2" fill="url(#grating)"/>
+
+            <!-- 三颗星 -->
+            <g fill="#0a0d16">
+              <use href="#star" transform="translate(76,270)"/>
+              <use href="#star" transform="translate(92,275) scale(.8)"/>
+              <use href="#star" transform="translate(107,269) scale(.9)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- 背面：奶白底 + QoQ -->
+        <div class="face back">
+          <svg viewBox="0 0 200 320" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="milk" cx=".4" cy=".35" r="1">
+                <stop offset="0" stop-color="#fdfdfe"/><stop offset=".6" stop-color="#e9edf5"/><stop offset="1" stop-color="#ccd4e2"/>
+              </radialGradient>
+              <linearGradient id="rim2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f4f7fd"/><stop offset=".5" stop-color="#9aa3b8"/><stop offset="1" stop-color="#e8ecf5"/>
+              </linearGradient>
+              <linearGradient id="ringM2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f4f7fd"/><stop offset=".55" stop-color="#8b93aa"/><stop offset="1" stop-color="#dfe4f0"/>
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="44" r="33" fill="none" stroke="url(#ringM2)" stroke-width="9"/>
+            <ellipse cx="100" cy="92" rx="8.5" ry="12" fill="none" stroke="url(#ringM2)" stroke-width="4.5"/>
+            <ellipse cx="100" cy="108" rx="8.5" ry="12" fill="none" stroke="url(#ringM2)" stroke-width="4.5"/>
+            <ellipse cx="100" cy="123" rx="7" ry="9.5" fill="none" stroke="url(#ringM2)" stroke-width="4"/>
+            <circle cx="100" cy="138" r="7" fill="none" stroke="url(#ringM2)" stroke-width="4"/>
+
+            <circle cx="100" cy="212" r="79" fill="url(#milk)" stroke="url(#rim2)" stroke-width="5"/>
+            <g fill="#ffffff" opacity=".8">
+              <circle cx="60" cy="184" r="1.1" opacity=".5"/><circle cx="146" cy="196" r="1" opacity=".45"/>
+              <circle cx="70" cy="262" r="1.2" opacity=".4"/><circle cx="138" cy="256" r=".9" opacity=".4"/>
+            </g>
+
+            <text x="100" y="220" text-anchor="middle" transform="rotate(-4 100 212)"
+                  font-family="-apple-system, sans-serif" font-weight="600" fill="#39415a">
+              <tspan font-size="34">Q</tspan><tspan font-size="22" dy="-2">ᴗ</tspan><tspan font-size="34" dy="2">Q</tspan>
+            </text>
+            <text x="100" y="254" text-anchor="middle" transform="rotate(2 100 254)"
+                  font-size="14" letter-spacing="3" fill="#5a6480">十八岁快乐呀</text>
+            <path d="M100 168 c 3 -5 11 -4 11 2 c 0 5 -7 8 -11 11 c -4 -3 -11 -6 -11 -11 c 0 -6 8 -7 11 -2 Z"
+                  fill="#ff9ab8" opacity=".8"/>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <p class="flip-tip">点一下吊坠，翻到背面看看</p>
+
   <div class="dear">DEAR</div>
   <div class="hero-name" id="toName">亲爱的你</div>
-  <div class="big18">18</div>
-  <div class="hero-sub">HAPPY BIRTHDAY</div>
   <div class="hero-cn">十八岁，生日快乐</div>
 
   <div class="divider"></div>
 
-  <section class="letter">
-    <div class="letter-title">一 封 信</div>
+  <section class="card wafer-fact">
+    <div class="card-title">为 什 么 是 一 片 晶 圆</div>
+    <p>一颗芯片，要经过上千道工序、几百个日夜的打磨，才能从晶圆上被切割下来，成为独一无二的存在。</p>
+    <p>人也一样。<b>十八岁，就是你刚刚"流片成功"的年纪。</b>往后的每一道工序，都会让你更接近想要的自己。</p>
+    <p class="fact-small">你手里这两片小小的晶圆，是真的从硅片上切割下来的——它们经历过的一切，从此替你见证。</p>
+  </section>
+
+  <section class="card">
+    <div class="card-title">一 封 信</div>
     <div class="letter-body" id="letterBody"><span class="caret"></span></div>
   </section>
 
@@ -286,7 +457,8 @@ main.revealed { opacity:1; }
   <section class="wishes" id="wishes"></section>
 
   <footer class="footer">
-    <p class="wafer-note">这枚小小晶圆里，藏着为你点亮的一小片星河<br>往后翻到它，就想起十八岁的今天，有人真心祝你快乐</p>
+    <div class="three-stars">★ ★ ★</div>
+    <p class="wafer-note">这枚小小的钥匙扣里，封存着一片真实的星条<br>往后翻到它，就想起十八岁的今天，有人真心祝你快乐</p>
     <p class="from-line" id="fromLine">—— 来自 很在乎你的人</p>
     <p class="date-line" id="dateLine"></p>
   </footer>
@@ -340,7 +512,7 @@ function drawStars(t){
     st.x += st.vx; if (st.x < 0) st.x = innerWidth; if (st.x > innerWidth) st.x = 0;
     const a = .25 + .75*Math.abs(Math.sin(t/1400*st.s + st.p));
     sctx.globalAlpha = a;
-    sctx.fillStyle = Math.random() < .1 ? '#ffe9b8' : '#dfe6ff';
+    sctx.fillStyle = '#dfe6ff';
     sctx.beginPath(); sctx.arc(st.x, st.y, st.r, 0, 7); sctx.fill();
   }
   sctx.globalAlpha = 1;
@@ -350,7 +522,7 @@ initStars();
 requestAnimationFrame(drawStars);
 addEventListener('resize', initStars);
 
-/* ============ 彩带 ============ */
+/* ============ 彩带（虹彩箔片色） ============ */
 const cc = document.getElementById('confetti'), cctx = cc.getContext('2d');
 let confetti = [];
 function sizeConfetti(){
@@ -359,7 +531,7 @@ function sizeConfetti(){
 }
 sizeConfetti(); addEventListener('resize', sizeConfetti);
 
-const PALETTE = ['#ffd6e8','#c2f0ff','#d8c7ff','#ffe9b8','#ffb3c1','#8ef0d8','#fdf6e3'];
+const PALETTE = ['#ffd6e8','#c2f0ff','#d8c7ff','#ffe9b8','#ffb3c1','#8ef0d8','#f2f5fb'];
 function burst(x = innerWidth/2, y = innerHeight/2, n = 140){
   for (let i = 0; i < n; i++){
     const ang = Math.random()*Math.PI*2, v = Math.random()*9 + 3;
@@ -389,13 +561,12 @@ function drawConfetti(){
 }
 requestAnimationFrame(drawConfetti);
 
-/* ============ 生日歌（WebAudio 合成，无需任何音频文件） ============ */
+/* ============ 生日歌（WebAudio 合成） ============ */
 function playBirthdaySong(){
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     const ac = new AC();
     const N = {G4:392, A4:440, B4:494, C5:523, D5:587, E5:659, F5:698, G5:784};
-    // [音名, 拍数] 3/4 拍生日歌
     const song = [
       ['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
       ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
@@ -425,11 +596,16 @@ unbox.addEventListener('click', () => {
   if (opened) return; opened = true;
   unbox.classList.add('hidden');
   main.classList.add('revealed');
-  burst(innerWidth/2, innerHeight*.38, 160);
+  burst(innerWidth/2, innerHeight*.35, 160);
   playBirthdaySong();
   typeLetter();
   setTimeout(() => burst(innerWidth*.25, innerHeight*.3, 70), 900);
   setTimeout(() => burst(innerWidth*.75, innerHeight*.3, 70), 1400);
+});
+
+/* ============ 吊坠翻面 ============ */
+document.getElementById('pendantHit').addEventListener('click', () => {
+  document.getElementById('flip').classList.toggle('flipped');
 });
 
 /* ============ 打字机信件 ============ */
