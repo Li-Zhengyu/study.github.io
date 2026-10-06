@@ -1122,41 +1122,50 @@ bgAudio.addEventListener('error', () => { bgVinyl.title = '[ 音频不可用 ]';
 let bgPlaying = false;
 
 /* ============ 歌词数据与面板逻辑 ============ */
+/* LYRICS_OFFSET：如歌词整体前后靠，调此常数（秒） */
+const LYRICS_OFFSET = 0;
 const lyricsData = [
-  { t: 10.5,  txt: "I will run, I will climb, I will soar" },
-  { t: 14.2,  txt: "I'm undefeated, oh" },
-  { t: 17.8,  txt: "Writing my story, I'm writing my story" },
-  { t: 21.5,  txt: "I will run, I will climb, I will soar" },
-  { t: 25.2,  txt: "I'm undefeated, oh" },
-  { t: 28.8,  txt: "Writing my story, I'm writing my story" },
-  { t: 33.5,  txt: "I've always been the kind of girl" },
-  { t: 36.8,  txt: "That hid my face" },
-  { t: 38.5,  txt: "So afraid to tell the world" },
-  { t: 41.8,  txt: "What I've got to say" },
-  { t: 45.2,  txt: "But I have this dream" },
-  { t: 47.0,  txt: "Right inside of me" },
-  { t: 49.5,  txt: "I'm gonna let it show, it's time" },
-  { t: 52.8,  txt: "To let you know" },
-  { t: 54.5,  txt: "To let you know" },
-  { t: 57.0,  txt: "I will run, I will climb, I will soar" },
-  { t: 60.8,  txt: "I'm undefeated, oh" },
-  { t: 64.2,  txt: "Writing my story, I'm writing my story" },
-  { t: 67.8,  txt: "I will run, I will climb, I will soar" },
-  { t: 71.5,  txt: "I'm undefeated, oh" },
-  { t: 75.0,  txt: "Writing my story, I'm writing my story" },
-  { t: 79.5,  txt: "This is your moment" },
-  { t: 82.8,  txt: "I'm writing my story" },
-  { t: 86.2,  txt: "I'm writing my story" },
-  { t: 90.5,  txt: "I will run, I will climb, I will soar" },
-  { t: 94.2,  txt: "I'm undefeated, oh" },
-  { t: 97.8,  txt: "Writing my story, I'm writing my story" },
-  { t: 101.5, txt: "I will run, I will climb, I will soar" },
-  { t: 105.2, txt: "I'm undefeated, oh" },
-  { t: 108.8, txt: "Writing my story, I'm writing my story" },
-  { t: 112.2, txt: "Oh, oh, oh, oh..." },
-  { t: 116.5, txt: "I'm undefeated, oh" },
-  { t: 120.0, txt: "Writing my story, I'm writing my story" },
-  { t: 124.0, txt: "I'm writing my story" }
+  { t: 8.58, txt: "I will run I will climb I will soar" },
+  { t: 12.75, txt: "我奔跑 我登攀 我要展翅翱翔\nI'm undefeated" },
+  { t: 16.53, txt: "我所向披靡\nJumping out of my skin pull the chord" },
+  { t: 20.73, txt: "跳脱自我的桎梏 拨动琴弦\nYeah I believe it" },
+  { t: 23.69, txt: "是啊 我坚信\nThe past is everything we were don't make us who we are" },
+  { t: 31.5, txt: "历史决定曾经 但并不能决定现在的你我\nSo I'll dream until I make it real and all I see is stars" },
+  { t: 38.74, txt: "所以我会不懈梦想直到梦成真 直到窥见漫天星光\nIt's not until you fall that you fly" },
+  { t: 43.63, txt: "不再畏惧跌倒 直到你展翅高飞的那一刻\nWhen your dreams come alive you're unstoppable" },
+  { t: 47.49, txt: "当梦想成真 你便无可阻挡\nTake a shot chase the sun find the beautiful" },
+  { t: 51.54, txt: "挥舞双翅 追随阳光 找寻美好\nWe will glow in the dark turning dust to gold" },
+  { t: 55.46, txt: "我们会在黑暗中耀发光芒 点石成金\nAnd we'll dream it possible" },
+  { t: 63.03, txt: "我们期盼梦想成真\nPossible" },
+  { t: 71.45, txt: "梦想成真\nAnd we'll dream it possible" },
+  { t: 76.56, txt: "我们期盼梦想成真\nI will chase I will reach I will fly" },
+  { t: 80.79, txt: "我追随 我向前 我会展翅翱翔\nUntil I'm breaking until I'm breaking" },
+  { t: 84.51, txt: "直到跌倒 直到毁灭的那一刻\nOut of my cage like a bird in the night" },
+  { t: 88.72, txt: "走出自我的牢笼 像黑夜中自由高飞的鸟儿般\nI know I'm changing I know I'm changing" },
+  { t: 92.0, txt: "我知道我在蜕变 在蜕变\nIn into something big better than before" },
+  { t: 99.34, txt: "变得未曾有过的强大\nAnd if it takes takes a thousand lives" },
+  { t: 102.7, txt: "崇高理想的实现\nThen it's worth fighting for" },
+  { t: 106.72, txt: "总是需要付出无数鲜血\nIt's not until you fall that you fly" },
+  { t: 111.52, txt: "不再畏惧跌倒 直到你展翅高飞的那一刻\nWhen your dreams come alive you're unstoppable" },
+  { t: 115.5, txt: "当梦想成真 你便无可阻挡\nTake a shot chase the sun find the beautiful" },
+  { t: 119.5, txt: "挥舞双翅 追随阳光 寻找美好\nWe will glow in the dark turning dust to gold" },
+  { t: 123.42, txt: "我们会在黑暗中耀发光芒 点石成金\nAnd we'll dream it possible" },
+  { t: 134.74, txt: "我们期盼梦想成真\nIt possible" },
+  { t: 143.99, txt: "梦想成真\nFrom the bottom to the top" },
+  { t: 146.27, txt: "从低谷到巅峰\nWe're sparking wild fire's" },
+  { t: 147.96, txt: "我们犹如燎燃的野火\nNever quit and never stop" },
+  { t: 150.34, txt: "决不放弃 永不退缩\nThe rest of our lives" },
+  { t: 151.84, txt: "穷尽余生 不懈奋斗\nFrom the bottom to the top" },
+  { t: 154.28, txt: "从低谷到巅峰\nWe're sparking wild fire's" },
+  { t: 156.0, txt: "我们犹如燎燃的野火\nNever quit and never stop" },
+  { t: 158.71, txt: "决不放弃 永不退缩\nIt's not until you fall that you fly" },
+  { t: 165.4, txt: "不再畏惧跌倒 直到你展翅高飞的那一刻\nWhen your dreams come alive you're unstoppable" },
+  { t: 169.43, txt: "当梦想成真 你便无可阻挡\nTake a shot chase the sun find the beautiful" },
+  { t: 173.45, txt: "挥舞双翅 追随阳光 寻找美好\nWe will glow in the dark turning dust to gold" },
+  { t: 177.43, txt: "我们会在黑暗中耀发光芒 点石成金\nAnd we'll dream it possible" },
+  { t: 184.97, txt: "我们期盼梦想成真\nPossible" },
+  { t: 193.47, txt: "梦想成真\nAnd we'll dream it possible" },
+  { t: 198.04, txt: "我们期盼梦想成真" },
 ];
 
 const lyricsTop = document.getElementById('lyricsTop');
@@ -1184,7 +1193,7 @@ function startLyricsSync() {
     let activeIdx = -1;
     let activeText = '';
     for (let i = 0; i < lyricsData.length; i++) {
-      if (lyricsData[i].t <= ct) {
+      if (lyricsData[i].t + LYRICS_OFFSET <= ct) {
         activeIdx = i;
         activeText = lyricsData[i].txt;
       } else break;
