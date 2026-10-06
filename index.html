@@ -17,7 +17,7 @@ body.paused, body.paused * { animation-play-state:paused !important; }
 
 /* MOBILE: 后台标签页不可见时由 JS 切换 .paused；rAF 循环由 JS cancel */
 
-html { scroll-snap-type: y proximity; overscroll-behavior-y:none; }
+html { scroll-snap-type: y mandatory; overscroll-behavior-y:none; }
 html, body { height:100%; }
 
 /* Performance: reduce motion for users who prefer it */
@@ -218,7 +218,7 @@ main { position:relative; z-index:1; }
 .scene {
   min-height:100svh;
   scroll-snap-align:start;
-  scroll-snap-stop:normal; /* OPTIMIZED: always→normal，iOS 滑动不再卡顿 */
+  scroll-snap-stop:always; /* 每次滑动最多翻一页：强制停在当前 snap 点，防止快速滑穿好几页 */
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:76px 24px 64px;
   padding-left:max(24px, env(safe-area-inset-left)); /* MOBILE: 安全区 */
@@ -738,7 +738,10 @@ body.capturing #confetti,
 body.capturing #glitchBars,
 body.capturing #hud,
 body.capturing .bg-vinyl,
-body.capturing .lyrics-top { display:none !important; }
+body.capturing .lyrics-top,
+body.capturing .ticker { display:none !important; } /* 走马灯冻结帧会错位，隐藏 */
+/* 未触发的滚动浮现动画强制完整显示——否则 .reveal 元素 opacity:0，长图下半部分全空白 */
+body.capturing .reveal { opacity:1 !important; transform:none !important; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior:auto; }
 }
@@ -1114,7 +1117,7 @@ document.addEventListener('visibilitychange', () => {
 /* ============ 背景音乐：右上角常驻黑胶（循环播放 Delacey 版 Dream It Possible） ============ */
 const bgVinyl = document.getElementById('bgVinyl');
 const bgAudio = new Audio('dream-it-possible-delacey.mp3');
-bgAudio.loop = true; bgAudio.preload = 'none'; bgAudio.volume = 0.35; /* OPTIMIZED: 按需加载，手机省流量省电 */
+bgAudio.loop = true; bgAudio.preload = 'auto'; bgAudio.volume = 0.35; /* OPTIMIZED: 按需加载，手机省流量省电 */
 bgAudio.addEventListener('error', () => { bgVinyl.title = '[ 音频不可用 ]'; });
 let bgPlaying = false;
 
@@ -1220,10 +1223,10 @@ function tryAutoPlay(){
   tryBgAutoplay();
 }
 
-/* 浏览器手势策略：首次点按/触摸 anywhere 即尝试启动背景音乐 */
+/* 浏览器手势策略：点按/触摸即尝试启动背景音乐，失败则保留监听重试直到成功 */
 const armBgMusic = () => {
+  if (bgPlaying) { removeEventListener('pointerdown', armBgMusic); return; }
   tryBgAutoplay();
-  if (opened) removeEventListener('pointerdown', armBgMusic);
 };
 addEventListener('pointerdown', armBgMusic);
 
@@ -1438,7 +1441,12 @@ function decrypt(){
     tryAutoPlay(); // 解密后尝试自动播放音乐
   }, 300);
 }
-unbox.addEventListener('click', decrypt);
+unbox.addEventListener('click', () => {
+  decrypt();
+  /* 自动播放策略：play() 必须在用户手势的同步调用栈里才被放行；
+     decrypt() 内的 setTimeout(300ms) 已脱离手势上下文，故此处同步补一次 */
+  if (!bgPlaying) tryBgAutoplay();
+});
 
 /* ============ AI NEURAL CORE 彩蛋逻辑 ============ */
 const aiResponses = {
@@ -2068,16 +2076,28 @@ saveLongBtn.addEventListener('click', async () => {
     paintStarsForCapture(docH);
     await new Promise(r => setTimeout(r, 150));
 
-    const canvas = await html2canvas(document.body, {
-      backgroundColor: '#060712',
-      scale: Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1), /* MOBILE: 降低分辨率防内存溢出 */
-      useCORS: true,
-      logging: false,
-      width: window.innerWidth,
-      height: docH,
-      windowWidth: window.innerWidth,
-      windowHeight: docH
-    });
+    /* 分块渲染：整页一次渲染在手机上易因画布边长超限而失败/空白，
+       且 html2canvas 对远超视口的区域渲染不完整。切段渲染后拼接。 */
+    let scale = Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1);
+    if (docH * scale > 8000) scale = 8000 / docH; /* 画布边长安全上限，兼容旧机型 */
+    const chunkH = Math.max(400, Math.floor(3000 / scale)); /* 每段 CSS 高度，渲染后 ≤3000px */
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(window.innerWidth * scale);
+    canvas.height = Math.floor(docH * scale);
+    const cctx = canvas.getContext('2d');
+    for (let y = 0; y < docH; y += chunkH) {
+      const h = Math.min(chunkH, docH - y);
+      const seg = await html2canvas(document.body, {
+        backgroundColor: '#060712',
+        scale,
+        useCORS: true,
+        logging: false,
+        x: 0, y, width: window.innerWidth, height: h,
+        windowWidth: window.innerWidth,
+        windowHeight: docH
+      });
+      cctx.drawImage(seg, 0, Math.floor(y * scale));
+    }
 
     restoreAfterCapture(mirror, aiField);
 
