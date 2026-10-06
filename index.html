@@ -236,8 +236,7 @@ main { position:relative; z-index:1; }
 .reveal.d1 { transition-delay:.15s; } .reveal.d2 { transition-delay:.3s; }
 .reveal.d3 { transition-delay:.45s; } .reveal.d4 { transition-delay:.6s; }
 
-/* Performance: content-visibility for off-screen scenes */
-.scene { content-visibility: auto; contain-intrinsic-size: 100vh 100vh; }
+/* Removed content-visibility - conflicts with scroll-snap */
 
 /* ===== 第一幕：封面 ===== */
 .pulse-dot { position:relative; width:52px; height:52px; margin-bottom:34px; }
@@ -977,7 +976,6 @@ addEventListener('resize', initBg);
 /* ============ 彩带（霓虹数据碎片） ============ */
 const cc = document.getElementById('confetti'), cctx = cc.getContext('2d');
 let confetti = [];
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 const MAX_PARTICLES = isMobile ? 60 : 140; // Fewer particles on mobile
 function sizeConfetti(){
   cc.width = innerWidth * devicePixelRatio; cc.height = innerHeight * devicePixelRatio;
