@@ -8,7 +8,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 html, body { height:100%; }
 
 body {
@@ -206,6 +206,7 @@ main { position:relative; z-index:1; }
 .scene {
   min-height:100svh;
   scroll-snap-align:start;
+  scroll-snap-stop: always;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:76px 24px 64px;
   max-width:560px; margin:0 auto;
@@ -1587,7 +1588,7 @@ function initScenes(){
       if (en.target.id === 's5') showBless();
       io.unobserve(en.target);
     }
-  }, { threshold: .25 });
+  }, { threshold: .5 });
   document.querySelectorAll('.scene').forEach(s => io.observe(s));
 }
 
