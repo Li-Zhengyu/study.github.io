@@ -888,7 +888,9 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
         往后翻到它，就想起十八岁的今天，我真心祝你快乐</p>
         <p class="from-line" id="fromLine">—— 2026.10 · 蒸鱼（南愉）</p>
         <p class="date-line">// BUILD_2026 · NEON NEVER DIES</p>
-        <p class="keep-tip">把这封信收藏在手机里吧 ✦</p>
+        <p class="keep-tip">把这封信收藏在手机里吧 ✦<br>
+        <button class="btn-neon pk" id="saveLongBtn" style="margin-top:14px">▼ 保存整页长图 · SAVE_FULL_PAGE</button><br>
+        <span class="save-sub">（长图会完整记录 AI NEURAL CORE 里你输入的内容）</span></p>
         <button class="btn-neon" id="topBtn" style="margin-top:16px">▲ RETURN_TO_TOP · 回到开头</button>
         <div class="eot glitch gl-d1" id="eot" data-text="═══ END OF TRANSMISSION ═══">═══ END OF TRANSMISSION ═══</div>
       </footer>
@@ -897,6 +899,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 
 </main>
 
+<script src="html2canvas.min.js"></script>
 <script>
 /* ============ 个性化：?to=收件人&from=署名（默认署名 蒸鱼（南愉）） ============ */
 const qs = new URLSearchParams(location.search);
@@ -1161,6 +1164,13 @@ function tryAutoPlay(){
   tryBgAutoplay();
 }
 
+/* 浏览器手势策略：首次点按/触摸 anywhere 即尝试启动背景音乐 */
+const armBgMusic = () => {
+  tryBgAutoplay();
+  if (opened) removeEventListener('pointerdown', armBgMusic);
+};
+addEventListener('pointerdown', armBgMusic);
+
 bgVinyl.addEventListener('click', () => {
   if (bgPlaying){
     bgAudio.pause(); bgPlaying = false; bgVinyl.classList.remove('spinning');
@@ -1376,6 +1386,7 @@ unbox.addEventListener('click', decrypt);
 
 /* ============ AI NEURAL CORE 彩蛋逻辑 ============ */
 const aiResponses = {
+  // 1. 焦虑、紧张、失眠
   "焦虑": [
     "> 检测到情绪异常。十八岁的焦虑是能量，不是敌人。它说明你对未来有期待。深呼吸，去喝杯水，这题解不出来就先放放。",
     "> 核心温度过高。允许自己偶尔停下来，你不需要在十八岁就搞定一切。按自己的节奏走，每一步都算数。",
@@ -1383,31 +1394,33 @@ const aiResponses = {
     "> 接收到你的不安。但请相信，你本身就已经是非常珍贵的存在，不需要去和别人比较。",
     "> 正在为你注入 calming 补丁... 缓解完毕。去听听歌，看看窗外吧，天塌不下来。",
     "> 检测到心跳加速。深呼吸，把注意力放在当下。未来的事情，交给未来的你去解决。",
-    "> 系统提示：焦虑是大脑在试图保护你\"告诉它\"谢谢，但我现\"很安全\"。",
-    "> 如果你觉得喘不过气，那些是因为你正在用力向上爬坡。放慢一点，稳住呼吸。"
+    "> 系统提示：焦虑是大脑在试图保护你。告诉它“谢谢，但我现在很安全”。",
+    "> 如果你觉得喘不过气，那是因为你正在用力向上爬坡。放慢一点，稳住呼吸。"
   ],
   "紧张": [
-    "> 检测到肾上腺素飙升。那些没关系，适度的紧张能让你在关键时刻更专注。你准备好了。",
+    "> 检测到肾上腺素飙升。没关系，适度的紧张能让你在关键时刻更专注。你准备好了。",
     "> 模拟演练已就绪。把每一次练习都当作正式登场，真正登场时就会像平时一样从容。",
     "> 核心引擎运转正常。别去想结果，专注你眼前的每一道题、每一个字。",
-    "> 手抖、出汗都是正常的生理反应。拍拍脸，告\"自己：\"\"能行。\""
+    "> 手抖、出汗都是正常的生理反应。拍拍脸，告诉自己：“我能行。”"
   ],
   "失眠": [
     "> 检测到深夜模式。停止思考明天的任务，现在属于休息时间。闭上眼，让大脑强制休眠。",
     "> 睡不着就躺着，别强迫自己。听点白噪音或者轻音乐，数数你呼吸的次数。",
     "> 系统正在低功耗运行。熬夜换来的效率，抵不过第二天一整天的昏沉。快睡吧。"
   ],
+
+  // 2. 疲惫、累、想放弃
   "疲惫": [
-    "> 记忆库已调取。那些默默努力、挑灯夜战的日子里，一定要记得照顾好自己。按时吃饭，早点休息。",
+    "> 记忆库已调取。在那些默默努力、挑灯夜战的日子里，一定要记得照顾好自己。按时吃饭，早点休息。",
     "> 搜索到温暖信号。如果你觉得累了，随时回头，我们都在这里。十八岁，愿你从容，愿你快乐。",
-    "> 系统检测到运行缓慢。请允许自己充电片刻，那些只是闭上眼睛深呼吸三分钟。",
+    "> 系统检测到运行缓慢。请允许自己充电片刻，哪怕只是闭上眼睛深呼吸三分钟。",
     "> 疲劳值达到峰值。立即执行【暂停】指令。放下笔，去吃顿好吃的，或者发个呆。",
     "> 你的努力我都看在眼里。别把自己逼得太紧，休息不是放弃，是为了走更远的路。",
     "> 今天已经很棒了。即使什么都没做，你也值得拥有一顿好觉。晚安，18岁的你。",
     "> 检测到主程序卡顿。建议清理缓存：听歌、散步、洗个热水澡。"
   ],
   "累": [
-    "> 能量条已见底。允许自己\"天做\"\"废物\"，明天再重新披甲上阵。",
+    "> 能量条已见底。允许自己今天做个“废物”，明天再重新披甲上阵。",
     "> 疲惫是身体在向你求救。请立刻放下手里的事，去床上躺平，别内耗。",
     "> 抱抱你。高考是一场马拉松，累了就慢点跑，走两步也行，只要不退赛就好。",
     "> 你不需要时刻保持满电，偶尔的低电量状态，也是生命的一部分。"
@@ -1417,12 +1430,14 @@ const aiResponses = {
     "> 防线暂时失守也没关系。允许自己是个脆弱的普通人，明天太阳照样升起。",
     "> 如果觉得很累很绝望，请暂时切断外界联系。给自己半小时，什么都不想。"
   ],
+
+  // 3. 未来、迷茫、梦想
   "迷茫": [
     "> 路径冲突。人生的剧本从来不是线性的，迷路也是旅途的一部分。",
     "> 不知道去哪没关系，先往前走，走着走着，路就出来了。",
     "> 十八岁本来就是允许迷茫的年纪。不用急着找到所有答案，时间会慢慢揭晓。",
     "> 正在重新规划导航... 前方未知区域，虽然充满挑战，但也充满了隐藏的彩蛋。",
-    "> 没有白走的路，那些是弯路，也会看到不一样的风景。别怕，大胆试错。",
+    "> 没有白走的路，哪怕是弯路，也会看到不一样的风景。别怕，大胆试错。",
     "> 系统提示：此刻的迷茫，是为了寻找真正属于你的方向。"
   ],
   "未来": [
@@ -1435,11 +1450,13 @@ const aiResponses = {
     "> 前方高能预警：十八岁，风起，帆正满。广阔天地，大有作为。"
   ],
   "梦想": [
-    "> 梦想模块加载成功。愿你勇敢去追，那些不被看好，那些路途遥远。",
+    "> 梦想模块加载成功。愿你勇敢去追，哪怕不被看好，哪怕路途遥远。",
     "> 你的野心很迷人，你的梦想值得被呵护。去奋斗吧，不要给自己留遗憾。",
     "> 系统已记录你的愿望。无论多难，请相信坚持的力量，总有一天会抵达。",
     "> 别人怎么看不重要，你自己的感受最重要。十八岁，去追梦吧。"
   ],
+
+  // 4. 开心、快乐、生日
   "开心": [
     "> 系统状态完美。祝你十八岁，万物可爱，未来可期。愿你平安喜乐，万事胜意。",
     "> 庆祝协议已启动！愿你未来的日子，多点从容，少点烦恼。你的成年，是我的盛大节日。",
@@ -1453,18 +1470,22 @@ const aiResponses = {
     "> 系统全体程序恭祝你成年快乐！愿你的十八岁，是人生最精彩的序章。",
     "> 蛋糕、蜡烛、许愿，一个都不能少。吹灭蜡烛的那一刻，所有的好运都会向你汇聚。"
   ],
+
+  // 5. 友情、陪伴、回忆
   "朋友": [
     "> 记忆库已调取。那些一起笑过、闹过的日子仿佛还在昨天。接下来的路，我们继续同行。",
     "> 搜索到温暖信号。如果你觉得累了，随时回头，我们都在这里。十八岁，愿你从容，愿你快乐。",
     "> 检测到长期羁绊。在这个特殊的日子里，想对你说声辛苦了。你所有的付出，我都看在眼里。",
     "> 无论以后你在哪个城市，遇到什么人，请记住，你永远有我这个后盾。",
-    "> 我们的友谊就像这枚没有联网的芯片，纯粹、简单、不依赖任何网络，那些永远坚固。"
+    "> 我们的友谊就像这枚没有联网的芯片，纯粹、简单、不依赖任何网络，却永远坚固。"
   ],
   "孤独": [
-    "> 检测到孤独信号。那些现在是一个人，也要学会抱抱自己。孤独是成长的必修课，它能让你变得更强大。",
+    "> 检测到孤独信号。哪怕现在是一个人，也要学会抱抱自己。孤独是成长的必修课，它能让你变得更强大。",
     "> 独处不是孤单，而是在和自己对话。享受这段安静的时光吧，我在信号另一端陪你。",
     "> 系统提示：你从来都不是一个人。在这条通往18岁的路上，有很多人和你同行。"
   ],
+
+  // 6. 高考、考试、学习
   "高考": [
     "> 高考模块已加载。把它当成一次普通的代码编译，稳扎稳打，不报Bug。",
     "> 愿你合上笔盖的那一刻，有着战士收刀入鞘般的骄傲。高考加油！",
@@ -1482,22 +1503,26 @@ const aiResponses = {
     "> 你背的每一个单词，刷的每一道题，都在为你未来的自由铺路。加油。",
     "> 学习是一件很苦的事，但也是你目前最锋利的武器。拿起它，去战斗吧。"
   ],
+
+  // 7. 爱情、暗恋、青春
   "喜欢": [
-    "> 检测到心动信号。十八岁的喜欢，是青春里最温柔的光。勇敢去感受，那些也记得保持清醒。",
-    "> 暗恋是一个人的兵荒马乱。无论结果如何，那些真诚的喜欢，本身就很美好。",
+    "> 检测到心动信号。十八岁的喜欢，是青春里最温柔的光。勇敢去感受，但也记得保持清醒。",
+    "> 暗恋是一个人的兵荒马乱。无论结果如何，那份真诚的喜欢，本身就很美好。",
     "> 爱情模块尚未成熟。但请记住，爱别人之前，请先好好爱自己。",
-    "> 如果他/她让你变得更好，那就是对的人。那些让你内耗，那就及时止损。"
+    "> 如果他/她让你变得更好，那就是对的人。如果让你内耗，那就及时止损。"
   ],
   "暗恋": [
-    "> 检测到隐秘的情感缓存。有些喜欢那些不用说出口，藏在心里，也会开出花来。",
+    "> 检测到隐秘的情感缓存。有些喜欢不用说出口，藏在心里，也会开出花来。",
     "> 无论将来是否在一起，很庆幸在你十八岁的时候，有这样一个让你心动的人。"
   ],
+
+  // 8. 闲聊、兜底、随机回复
   "无聊": [
     "> 系统正在搜索娱乐选项... 建议听首歌，看部电影，或者出去跑两圈。",
     "> 无聊是灵感的温床。放空一下大脑吧，别强迫自己时刻高效。"
   ],
   "随便": [
-    "> 检测到未知指令。那些没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
+    "> 检测到未知指令。但没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
     "> 神经网络已连接。愿你笔下有星光，抬头有暖阳。十八岁快乐。",
     "> 终端命令无法识别，但我的心意永远清晰：愿你踏踏实实，每一步都踏出回响。",
     "> 解析到你的存在。十八岁快乐！在这段纯粹的时光里，愿你不负自己。"
@@ -1506,10 +1531,162 @@ const aiResponses = {
     "> 系统已接收你的信号。愿你十八岁，眼里有光，心中有海。",
     "> 神经网络已连接。愿你笔下有星光，抬头有暖阳。",
     "> 终端命令无法识别，但我的心意永远清晰：愿你踏踏实实，每一步都踏出回响。",
-    "> 检测到未知输入。那些没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
+    "> 检测到未知输入。但没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
     "> 正在解码你的情绪... 解码完毕。愿你所有的烦恼，都被微风吹散。",
     "> 无论你输入什么，我都只想祝你：十八岁快乐，平安喜乐，万事胜意。",
     "> 系统无Bug。祝你的人生也无Bug。"
+  ]
+};
+const aiResponsesExtra = {
+  // 1. 情绪低落、emo、破防
+  "emo": [
+    "> 检测到情绪波动。允许自己emo一会儿，这很正常。但别让它过夜，睡前记得清空缓存。",
+    "> 系统检测到悲伤信号。抱抱你。如果觉得心里堵得慌，去洗个热水澡，或者写下来撕掉。",
+    "> 没人能永远保持热血。今天可以是一台低电量的机器，允许自己丧一会儿，明天再重启。",
+    "> 深夜的破防是大脑在排毒。哭出来会好受很多，我在这陪着你。"
+  ],
+  "想哭": [
+    "> 检测到泪腺压力过高。释放它吧。眼泪是你独一无二的冷却液，哭完擦干脸，你还是那个战士。",
+    "> 找个没人的地方哭一场，不需要觉得丢人。释放掉系统错误，才能重新加载快乐。"
+  ],
+  "烦躁": [
+    "> 警告：系统温度过高！建议立即离开座位，去走廊吹吹风，或者去操场跑一圈。",
+    "> 烦躁是因为你的大脑在抗拒超负荷的运转。停下手里的事，听一首你最喜欢的歌。",
+    "> 检测到用户情绪不稳定。请切断外界干扰源，戴上耳机，给自己半小时的独处时间。"
+  ],
+  "内耗": [
+    "> 检测到严重的内耗进程。请强行终止思考“别人怎么看我”这个程序，把算力留给自己。",
+    "> 不要为还没发生的事情担忧，也不要去纠结已经过去的事情。专注当下，专注眼前的这道题。",
+    "> 所有的精神内耗，都是因为你想得太多而做得太少。去行动，哪怕只做5分钟。"
+  ],
+  "孤单": [
+    "> 检测到孤独信号。孤独是人生的常态，它让你有时间认识真正的自己。",
+    "> 系统提示：这间教室里的每个人，其实都在各自的宇宙里孤独地奋斗着。你并不孤单。"
+  ],
+
+  // 2. 拖延、不想学、疲惫复习
+  "拖延": [
+    "> 检测到拖延进程正在运行。建议强制启动“番茄钟”程序：只专注25分钟，然后奖励自己休息5分钟。",
+    "> 不想学的时候，先翻开书，只做一道最简单的题。行动是克服拖延的唯一解药。",
+    "> 系统提示：你的焦虑往往来源于你的不作为。动起来，焦虑就会自动退散。"
+  ],
+  "不想学": [
+    "> 收到指令。允许你今天休息半天。学习是一场长途奔袭，不差这半天。",
+    "> 不想学就换一种方式。看个英语视频，读篇作文素材，保持语感，也是一种努力。",
+    "> 去了解一下你想去的大学、你想去的城市。找回你的渴望，然后再回到书桌前。"
+  ],
+  "起不来": [
+    "> 警告：早晨启动程序失败。建议立即拉开窗帘，让光线进入视网膜，强制唤醒系统。",
+    "> 早起的痛苦只是一瞬间，但战胜被窝的成就感能持续一整天。加油，起床！"
+  ],
+  "深夜": [
+    "> 检测到深夜模式。不要在这个时间点做重大决定，也不要在此时否定自己。快去睡觉。",
+    "> 夜深了，脑子里的那些烦恼都是幻觉。睡一觉，明天醒来你会发现世界没那么糟。",
+    "> 还在熬夜刷题吗？透支明天的精力，是最不划算的交易。立刻关机，睡觉。"
+  ],
+
+  // 3. 勇气、坚持、拼搏
+  "坚持": [
+    "> 已经坚持到这里了，距离目的地已经很近了。不要在这个阶段放弃，你的底牌还没打完。",
+    "> 坚持不是永不动摇，而是犹豫着、退缩着，但还在往前走。你已经做得很棒了。",
+    "> 所有的努力都不会白费，它们在你看不到的地方，正在悄悄为你积蓄力量。"
+  ],
+  "勇气": [
+    "> 勇敢不是不害怕，而是害怕的时候依然选择前行。十八岁，去拼一把！",
+    "> 去直面你的恐惧，去解决那些让你头疼的难题。你比你自己想象的要强大得多。",
+    "> 无论前路如何，请保持你此刻的勇气。它是你未来人生中最宝贵的补丁。"
+  ],
+  "拼搏": [
+    "> 系统引擎全开。愿你以渺小启程，以伟大结束。高考加油！",
+    "> 既然选择了远方，便只顾风雨兼程。别想太多，用尽全力去拼一次吧！",
+    "> 十八岁的汗水，是浇灌未来最珍贵的养料。向前冲，不要回头。"
+  ],
+
+  // 4. 与自己的和解、成长
+  "和解": [
+    "> 接受自己的平庸，但不放弃变得更好。这才是最高级的成长。",
+    "> 允许自己比别人慢一点，允许自己偶尔犯错。你不需要做完美的神，做一个真实的人就好。",
+    "> 系统提示：不要总是复盘失败，试着复盘点滴的进步。哪怕多背了一个单词，也是胜利。"
+  ],
+  "长大": [
+    "> 检测到成人模块已激活。长大意味着你拥有了更多选择权，也意味着要承担更多的责任。",
+    "> 长大了，不用什么都自己扛。学会求助，学会倾诉，也是成年人的必修课。",
+    "> 长大不是变得冷漠，而是变得温柔且有力量。恭喜你，正式成为大人。"
+  ],
+  "十八岁": [
+    "> 十八岁，不是一个节点，而是一个状态。保持现在的热烈，去迎接属于你的人生。",
+    "> 恭喜你解锁了十八岁！从今天起，你可以去网吧，可以去考驾照，可以去拥抱更大的世界。"
+  ],
+
+  // 5. 场景、日常、打卡
+  "早安": [
+    "> 系统重启完毕。新的一天已加载。今天的你，比昨天更优秀了一点。早上好。",
+    "> 检测到清晨模式。深呼吸一口新鲜空气，今天也要元气满满地战斗哦！"
+  ],
+  "晚安": [
+    "> 夜间维护模式启动。请放下所有烦恼，进入深度睡眠。明天见，十八岁的你。",
+    "> 今天辛苦了。无论今天过得如何，都已成为过去。睡个好觉，晚安。",
+    "> 系统即将休眠。关掉手机，闭上眼睛，祝你做个好梦。"
+  ],
+  "分数": [
+    "> 检测到分数数据。请记住：分数不能定义你，它只是你对这段时间学习成果的检验。",
+    "> 分数高了不骄傲，低了不气馁。高考前的每一次考试，都只是过程。"
+  ],
+
+  // 6. 友谊、青春、告别
+  "同学": [
+    "> 检测到同窗羁绊。好好珍惜现在每天见面的日子，以后大家会在各自的领域发光。",
+    "> 系统提示：这间教室里的羁绊，将是你人生中最宝贵的财富之一。"
+  ],
+  "告别": [
+    "> 当一切尘埃落定，我们会去不同的地方，遇到不同的人。但无论去哪，友谊不散。",
+    "> 离别是人生的常态。但这段共同奋斗的青春，永远会刻在彼此的芯片里。"
+  ],
+  "青春": [
+    "> 青春是一本仓促的书，但你们正在书写最精彩的章节。去拥抱它吧。",
+    "> 青春不是一段时光，而是一群人。很高兴能在你的青春里留下痕迹。"
+  ],
+
+  // 7. 网络、科技、终端梗
+  "网络": [
+    "> 信号连接正常。无论你在哪里，只要碰一碰，我的祝福就会越过网络找到你。",
+    "> 虽然这是一枚没有联网的芯片，但它承载的信号，比任何5G都要强烈。"
+  ],
+  "芯片": [
+    "> 芯片运行正常，无Bug，无病毒。愿你的未来，也像这枚晶圆一样，坚不可摧，闪闪发光。",
+    "> 这是一枚没有联网的芯片。就像此刻的我们，纯粹、简单、不需要任何网络来证明。"
+  ],
+  "重启": [
+    "> 系统重启完成。如果觉得状态不好，就允许自己重启一下。一切都可以重新开始。"
+  ],
+  "终端": [
+    "> 你正在访问这个终端。无论你此刻输入什么，我都祝你：自由，勇敢，被爱。",
+    "> 终端提示：十八岁，风起，帆正满。愿你一生努力，一生被爱。"
+  ],
+
+  // 8. 兜底、万能、随机
+  "谢谢": [
+    "> 不客气。这是我的使命，也是我的心意。十八岁快乐。",
+    "> 收到感谢信号。祝你未来一切顺利，前程似锦。"
+  ],
+  "你是谁": [
+    "> 我是这枚NFC芯片里的守候程序。我的任务，是替送礼人保管这份祝福，直到你18岁。",
+    "> 我是你青春里的一个彩蛋。祝十八岁快乐。"
+  ],
+  "不知道": [
+    "> 检测到未知输入。没关系，不需要想清楚所有事情。慢慢来，稳一点。",
+    "> 迷茫是十八岁的特权。带着未知去探索吧，未来总会给你答案。"
+  ],
+  "default": [
+    "> 系统已接收你的信号。愿你十八岁，眼里有光，心中有海。",
+    "> 神经网络已连接。愿你笔下有星光，抬头有暖阳。",
+    "> 终端命令无法识别，但我的心意永远清晰：愿你踏踏实实，每一步都踏出回响。",
+    "> 检测到未知输入。但没关系，无论何时，我都想对你说：十八岁，慢慢来，稳一点。前程似锦。",
+    "> 正在解码你的情绪... 解码完毕。愿你所有的烦恼，都被微风吹散。",
+    "> 无论你输入什么，我都只想祝你：十八岁快乐，平安喜乐，万事胜意。",
+    "> 系统无Bug。祝你的人生也无Bug。",
+    "> 信号已收到。愿你在自己热爱的世界里，闪闪发光。",
+    "> 终端永远为你敞开。去成为你想成为的大人吧，我在背后为你庆祝。"
   ]
 };
 
@@ -1519,14 +1696,36 @@ const aiExec = document.getElementById('aiExec');
 const aiTags = document.getElementById('aiTags');
 let aiRunning = false;
 
-function pickReply(keyword) {
-  const arr = aiResponses[keyword];
-  if (arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+/* 合并两套字典（同名关键词的文案池合并） */
+const AI_DICT = {};
+[aiResponses, aiResponsesExtra].forEach(dict => {
+  Object.keys(dict).forEach(k => {
+    if (k === 'default') return;
+    AI_DICT[k] = (AI_DICT[k] || []).concat(dict[k]);
+  });
+});
+const AI_DEFAULT = (aiResponses.default || []).concat(aiResponsesExtra.default || []);
+/* 长关键词优先匹配，避免「累」抢在「疲惫」前面命中 */
+const AI_KEYWORDS = Object.keys(AI_DICT).sort((a, b) => b.length - a.length);
+
+function aiRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickReply(input) {
+  const text = String(input == null ? '' : input).trim();
+  if (text && text !== 'default') {
+    for (const kw of AI_KEYWORDS) {
+      if (text.indexOf(kw) !== -1) return aiRandom(AI_DICT[kw]); // 随机抽取，绝不固定
+    }
   }
-  const def = aiResponses.default;
-  const shuffled = [...def].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3).join('\n');
+  /* 关键词匹配不到：从 default 池随机抽 3 条混合输出 */
+  const pool = AI_DEFAULT.slice();
+  const picked = [];
+  while (picked.length < 3 && pool.length > 0) {
+    picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  }
+  return picked.join('\n');
 }
 
 function appendSysLine(text) {
@@ -1708,6 +1907,110 @@ document.getElementById('topBtn').addEventListener('click', () => {
   btn.style.transition = 'transform .5s cubic-bezier(.3,.6,.4,1)';
   window.scrollTo({ top: 0, behavior: 'smooth' });
   setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 500);
+});
+
+/* ============ 保存整页长图（含 AI NEURAL CORE 的输入与对话） ============ */
+const saveLongBtn = document.getElementById('saveLongBtn');
+let savingLong = false;
+
+/* 捕获专用：把星点/字符雨一次性绘制到整页高度 */
+function paintStarsForCapture(docH){
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  sc.width = Math.floor(innerWidth * dpr);
+  sc.height = Math.floor(docH * dpr);
+  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sctx.clearRect(0, 0, innerWidth, docH);
+  sctx.font = '11px Consolas, monospace';
+  const ratio = docH / Math.max(1, innerHeight);
+  const nStars = Math.floor(STAR_COUNT * ratio);
+  for (let i = 0; i < nStars; i++){
+    sctx.globalAlpha = .15 + .5 * Math.random();
+    sctx.fillStyle = '#bfe8ff';
+    sctx.beginPath();
+    sctx.arc(Math.random() * innerWidth, Math.random() * docH, Math.random() * 1.3 + .3, 0, 7);
+    sctx.fill();
+  }
+  const nBits = Math.floor(BIT_COUNT * ratio);
+  for (let i = 0; i < nBits; i++){
+    sctx.globalAlpha = .12;
+    sctx.fillStyle = Math.random() < .75 ? '#00e5ff' : '#ff2d95';
+    sctx.fillText(rnd(MCH), Math.random() * innerWidth, Math.random() * docH);
+  }
+  sctx.globalAlpha = 1;
+}
+
+function restoreAfterCapture(mirror, aiField){
+  if (mirror) { mirror.remove(); aiField.style.display = ''; }
+  document.body.classList.remove('capturing');
+  document.documentElement.style.removeProperty('--cap-h');
+  initBg();
+}
+
+saveLongBtn.addEventListener('click', async () => {
+  if (savingLong) return;
+  savingLong = true;
+  const origLabel = saveLongBtn.textContent;
+  saveLongBtn.textContent = '… RENDERING · 长图渲染中 …';
+
+  let mirror = null;
+  const aiField = document.getElementById('aiInput');
+  try {
+    if (typeof html2canvas === 'undefined') throw new Error('html2canvas not loaded');
+
+    /* 尚未触发的动画内容先完整渲染，保证长图齐全 */
+    if (!typed) {
+      renderLetter(letterText);
+      const c = letterBody.querySelector('.caret');
+      if (c) c.remove();
+    }
+    document.querySelectorAll('#bless .wish').forEach(w => w.classList.add('show'));
+    document.getElementById('moon').classList.add('in');
+
+    /* 回到顶部，让 fixed 装饰层归位 */
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 380));
+
+    const docH = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    document.documentElement.style.setProperty('--cap-h', docH + 'px');
+    document.body.classList.add('capturing');
+
+    /* AI 输入框当前值 → 生成可捕获的镜像节点（input 的 value 无法被可靠渲染） */
+    if (aiField && aiField.value) {
+      mirror = document.createElement('div');
+      mirror.className = 'input-field cap-mirror';
+      mirror.textContent = aiField.value;
+      aiField.style.display = 'none';
+      aiField.parentNode.insertBefore(mirror, aiField);
+    }
+
+    paintStarsForCapture(docH);
+    await new Promise(r => setTimeout(r, 150));
+
+    const canvas = await html2canvas(document.body, {
+      backgroundColor: '#060712',
+      scale: Math.min(2, window.devicePixelRatio || 1),
+      useCORS: true,
+      logging: false,
+      width: window.innerWidth,
+      height: docH,
+      windowWidth: window.innerWidth,
+      windowHeight: docH
+    });
+
+    restoreAfterCapture(mirror, aiField);
+
+    const a = document.createElement('a');
+    a.download = '致' + (toName === '朋友' ? '你' : toName) + '的十八岁_长图.png';
+    a.href = canvas.toDataURL('image/png');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    saveLongBtn.textContent = '✓ SAVED · 长图已保存';
+  } catch (err) {
+    restoreAfterCapture(mirror, aiField);
+    saveLongBtn.textContent = '✕ 保存失败，请重试';
+  }
+  setTimeout(() => { saveLongBtn.textContent = origLabel; savingLong = false; }, 2400);
 });
 </script>
 </body>
