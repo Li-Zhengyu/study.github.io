@@ -11,36 +11,43 @@
 html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 html, body { height:100%; }
 
+/* Performance: reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   background:
-    radial-gradient(120% 55% at 50% 108%, rgba(255,45,149,.22), transparent 62%),
-    radial-gradient(120% 90% at 50% 0%, #1a0c33 0%, #0d0a22 45%, #070814 100%);
-  color:#e8f0f8;
+    radial-gradient(120% 55% at 50% 108%, rgba(255,45,149,.15), transparent 62%),
+    radial-gradient(120% 90% at 50% 0%, #140b2a 0%, #0a0a1e 45%, #05060f 100%);
+  color:#d8e6f2;
   overflow-x:hidden;
-  /* HDR-like rendering */
-  filter: contrast(1.15) saturate(1.25) brightness(1.05);
-  -webkit-filter: contrast(1.15) saturate(1.25) brightness(1.05);
+  /* Removed body-level filter - was forcing full-page GPU compositing */
 }
 
 /* ---------- 背景：霓虹网格 + 扫描线 ---------- */
 .grid-bg {
   position:fixed; inset:0; z-index:0; pointer-events:none;
   background-image:
-    linear-gradient(rgba(0,229,255,.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,.1) 1px, transparent 1px),
-    linear-gradient(rgba(255,45,149,.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,45,149,.06) 1px, transparent 1px);
-  background-size:44px 44px, 44px 44px, 220px 220px, 220px 220px;
+    linear-gradient(rgba(0,229,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.06) 1px, transparent 1px),
+    linear-gradient(rgba(255,45,149,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,45,149,.03) 1px, transparent 1px);
+  background-size:60px 60px, 60px 60px, 300px 300px, 300px 300px;
   mask-image:radial-gradient(85% 75% at 50% 35%, #000 30%, transparent 100%);
   -webkit-mask-image:radial-gradient(85% 75% at 50% 35%, #000 30%, transparent 100%);
-  /* HDR bloom on grid */
-  filter: brightness(1.3) contrast(1.2);
+  /* Removed filter - was expensive on mobile */
 }
 .scanlines {
-  position:fixed; inset:0; z-index:40; pointer-events:none; opacity:.35;
-  background:repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 3px);
-  mix-blend-mode: screen;
+  position:fixed; inset:0; z-index:40; pointer-events:none; opacity:.25;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+  /* Removed mix-blend-mode: screen - expensive on mobile */
 }
 #stars { position:fixed; inset:0; z-index:0; }
 #confetti { position:fixed; inset:0; z-index:60; pointer-events:none; }
@@ -48,24 +55,24 @@ body {
 /* ---------- 顶部滚动状态栏 ---------- */
 .ticker {
   position:fixed; top:0; left:0; right:0; z-index:45;
-  background:rgba(5,7,17,.9);
-  border-bottom:1px solid rgba(0,229,255,.4);
-  overflow:hidden; backdrop-filter:blur(8px) saturate(1.5); -webkit-backdrop-filter:blur(8px) saturate(1.5);
-  box-shadow: 0 2px 16px rgba(0,229,255,.1), inset 0 -1px 0 rgba(0,229,255,.15);
+  background:rgba(5,7,17,.85);
+  border-bottom:1px solid rgba(0,229,255,.3);
+  overflow:hidden; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  /* Removed saturate() and box-shadow for performance */
 }
 .ticker-in {
   display:inline-block; white-space:nowrap; padding:5px 0;
   font:10px Consolas, monospace; letter-spacing:.18em;
-  color:rgba(0,229,255,.9);
-  text-shadow: 0 0 6px rgba(0,229,255,.4);
+  color:rgba(0,229,255,.85);
+  /* Removed text-shadow for performance */
   animation:tick 26s linear infinite;
 }
-.ticker-in b { color:#ff2d95; font-weight:400; text-shadow: 0 0 6px rgba(255,45,149,.5); }
+.ticker-in b { color:#ff2d95; font-weight:400; }
 @keyframes tick { to { transform:translateX(-50%); } }
 
 /* ---------- 屏幕四角 HUD ---------- */
 #hud { position:fixed; inset:10px; z-index:35; pointer-events:none; }
-#hud i { position:absolute; width:18px; height:18px; border:0 solid rgba(0,229,255,.6); filter: drop-shadow(0 0 4px #00e5ff); }
+#hud i { position:absolute; width:18px; height:18px; border:0 solid rgba(0,229,255,.5); /* Removed drop-shadow */ }
 #hud .tl { top:0; left:0; border-top-width:2px; border-left-width:2px; }
 #hud .tr { top:0; right:0; border-top-width:2px; border-right-width:2px; }
 #hud .bl { bottom:0; left:0; border-bottom-width:2px; border-left-width:2px; }
@@ -75,35 +82,33 @@ body {
 .bg-vinyl {
   position:fixed; bottom:18px; right:18px; z-index:42;
   width:56px; height:56px; cursor:pointer;
-  transition:transform .2s, filter .2s;
-  filter:drop-shadow(0 0 14px rgba(255,45,149,.5));
+  transition:transform .2s;
+  /* Removed filter:drop-shadow for performance */
 }
-.bg-vinyl:hover { transform:scale(1.08); filter:drop-shadow(0 0 24px rgba(255,45,149,.8)); }
+.bg-vinyl:hover { transform:scale(1.06); }
 .bg-vinyl .vinyl-disc {
   position:absolute; inset:0; margin:auto; width:48px; height:48px; border-radius:50%;
   background:
     radial-gradient(circle, #ff2d95 0 17%, #12101f 18% 30%, transparent 30%),
     repeating-radial-gradient(circle at 50% 50%, #0d0a1c 0 3px, #191537 3px 6px);
-  border:1px solid rgba(255,45,149,.55);
-  box-shadow:
-    0 0 24px rgba(255,45,149,.45),
-    0 0 48px rgba(255,45,149,.2),
-    inset 0 0 32px rgba(0,0,0,.8);
+  border:1px solid rgba(255,45,149,.45);
+  box-shadow:0 0 18px rgba(255,45,149,.3), inset 0 0 24px rgba(0,0,0,.7);
+  /* Simplified from 3-layer shadow to 1 */
 }
 .bg-vinyl .vinyl-disc::before {
   content:""; position:absolute; inset:0; margin:auto; width:18px; height:18px; border-radius:50%;
   background:radial-gradient(circle, #ff5fa8, #b81d63);
-  box-shadow: 0 0 12px rgba(255,95,168,.6);
+  /* Removed box-shadow for performance */
 }
 .bg-vinyl .vinyl-disc::after {
   content:""; position:absolute; inset:0; margin:auto; width:4px; height:4px; border-radius:50%; background:#05060f;
 }
 .bg-vinyl .vinyl-needle {
   position:absolute; top:4px; right:4px; width:22px; height:6px;
-  background:linear-gradient(90deg, transparent, #aa5);
+  background:linear-gradient(90deg, transparent, #885);
   border-radius:3px; transform-origin:right center;
-  transform:rotate(-35deg); opacity:.9;
-  filter: drop-shadow(0 0 4px rgba(170,170,85,.5));
+  transform:rotate(-35deg); opacity:.85;
+  /* Removed filter:drop-shadow for performance */
   transition:transform .4s cubic-bezier(.3,.6,.4,1);
 }
 .bg-vinyl.spinning .vinyl-disc { animation:bgSpin 2.8s linear infinite; }
@@ -153,7 +158,7 @@ body {
   padding:2px 0; cursor:default;
 }
 .lyrics-line.active {
-  opacity:1; color:#ff2d95; text-shadow:0 0 8px rgba(255,45,149,.6);
+  opacity:1; color:#ff2d95; /* Removed text-shadow for performance */
   transform:translateX(4px);
 }
 .lyrics-line::before { content:"> "; color:rgba(255,45,149,.5); margin-right:4px; }
@@ -177,14 +182,14 @@ body {
 #bootLog {
   font-family:"SF Mono", Consolas, Menlo, "Courier New", monospace;
   font-size:12.5px; line-height:2; color:#3ddc84;
-  text-shadow:0 0 8px rgba(61,220,132,.4);
+  /* Removed text-shadow for performance */
   white-space:pre-wrap; width:min(88vw, 420px); min-height:200px;
 }
 #bootLog .dim { color:#2a7a4d; }
-#bootLog .cy { color:#00e5ff; text-shadow:0 0 8px rgba(0,229,255,.5); }
-#bootLog .pink { color:#ff2d95; text-shadow:0 0 8px rgba(255,45,149,.5); }
-#bootLog .gold { color:#ffc857; text-shadow:0 0 8px rgba(255,200,87,.5); }
-#bootLog .err { color:#ff5f57; text-shadow:0 0 8px rgba(255,95,87,.5); }
+#bootLog .cy { color:#00e5ff; /* Removed text-shadow */ }
+#bootLog .pink { color:#ff2d95; /* Removed text-shadow */ }
+#bootLog .gold { color:#ffc857; /* Removed text-shadow */ }
+#bootLog .err { color:#ff5f57; /* Removed text-shadow */ }
 #bootBar {
   width:min(72vw, 320px); height:3px; margin-top:26px;
   background:rgba(0,229,255,.14); border-radius:2px; overflow:hidden;
@@ -226,24 +231,27 @@ main { position:relative; z-index:1; }
 }
 
 /* 浮现动画 */
-.reveal { opacity:0; transform:translateY(34px); transition:opacity 1s ease, transform 1s ease; }
+.reveal { opacity:0; transform:translateY(34px); transition:opacity 1s ease, transform 1s ease; will-change: opacity, transform; }
 .reveal.in { opacity:1; transform:none; }
 .reveal.d1 { transition-delay:.15s; } .reveal.d2 { transition-delay:.3s; }
 .reveal.d3 { transition-delay:.45s; } .reveal.d4 { transition-delay:.6s; }
+
+/* Performance: content-visibility for off-screen scenes */
+.scene { content-visibility: auto; contain-intrinsic-size: 100vh 100vh; }
 
 /* ===== 第一幕：封面 ===== */
 .pulse-dot { position:relative; width:52px; height:52px; margin-bottom:34px; }
 .pulse-dot i {
   position:absolute; inset:0; margin:auto; width:10px; height:10px; border-radius:50%;
-  background:#00e5ff; box-shadow:0 0 18px #00e5ff, 0 0 40px rgba(0,229,255,.7), 0 0 80px rgba(0,229,255,.3);
-  filter: brightness(1.5);
+  background:#00e5ff; box-shadow:0 0 14px #00e5ff, 0 0 28px rgba(0,229,255,.5);
+  /* Removed filter:brightness and 3rd shadow layer */
 }
 .pulse-dot::before, .pulse-dot::after {
-  content:""; position:absolute; inset:0; border:1px solid rgba(0,229,255,.7);
+  content:""; position:absolute; inset:0; border:1px solid rgba(0,229,255,.55);
   border-radius:50%; animation:ping 2.6s cubic-bezier(0,.5,.4,1) infinite;
-  box-shadow: 0 0 20px rgba(0,229,255,.3);
+  /* Removed box-shadow for performance */
 }
-.pulse-dot::after { animation-delay:1.3s; border-color:rgba(255,45,149,.7); box-shadow: 0 0 20px rgba(255,45,149,.3); }
+.pulse-dot::after { animation-delay:1.3s; border-color:rgba(255,45,149,.5); }
 @keyframes ping {
   0% { transform:scale(.3); opacity:1; }
   100% { transform:scale(2.4); opacity:0; }
@@ -252,18 +260,15 @@ main { position:relative; z-index:1; }
 .hint-badge {
   display:block; width:max-content; max-width:92vw; margin:0 auto;
   font-size:11px; letter-spacing:.22em; text-align:center;
-  color:#00e5ff; border:1px solid rgba(0,229,255,.5);
+  color:#00e5ff; border:1px solid rgba(0,229,255,.35);
   padding:6px 14px; border-radius:4px;
   font-family:Consolas, monospace;
-  background:rgba(0,229,255,.08);
-  box-shadow:
-    0 0 16px rgba(0,229,255,.25),
-    0 0 32px rgba(0,229,255,.12),
-    inset 0 0 16px rgba(0,229,255,.08);
+  background:rgba(0,229,255,.05);
+  box-shadow:0 0 12px rgba(0,229,255,.15), inset 0 0 12px rgba(0,229,255,.06);
+  /* Simplified from 3-layer to 2-layer shadow, removed text-shadow */
   animation:blink 2.6s ease-in-out infinite;
-  text-shadow: 0 0 8px rgba(0,229,255,.5);
 }
-@keyframes blink { 0%,100%{opacity:.65} 50%{opacity:1} }
+@keyframes blink { 0%,100%{opacity:.55} 50%{opacity:1} }
 
 .dear {
   margin-top:34px; text-align:center;
@@ -275,7 +280,7 @@ main { position:relative; z-index:1; }
   font-size:clamp(30px, 8.6vw, 44px); font-weight:700; letter-spacing:.1em;
   background:linear-gradient(100deg,#7df9ff 0%,#00e5ff 35%,#ff2d95 75%,#ff7ad9 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 0 16px rgba(0,229,255,.35)) drop-shadow(0 0 30px rgba(255,45,149,.22));
+  /* Removed filter:drop-shadow for performance */
   line-height:1.5;
 }
 .hero-sub {
@@ -298,7 +303,7 @@ main { position:relative; z-index:1; }
 }
 .swipe-hint .arrow {
   display:block; font-size:18px; color:#00e5ff;
-  text-shadow:0 0 12px rgba(0,229,255,.6);
+  /* Removed text-shadow for performance on animated element */
   animation:floatUp 1.8s ease-in-out infinite;
 }
 @keyframes floatUp {
@@ -313,40 +318,35 @@ main { position:relative; z-index:1; }
 /* ===== 幕通用：HUD 角框卡片 ===== */
 .card {
   width:100%;
-  background:rgba(10,14,30,.7);
-  border:1px solid rgba(0,229,255,.25);
+  background:rgba(10,14,30,.65);
+  border:1px solid rgba(0,229,255,.2);
   border-radius:8px;
   padding:28px 22px;
   position:relative;
-  backdrop-filter:blur(8px) saturate(1.5); -webkit-backdrop-filter:blur(8px) saturate(1.5);
-  box-shadow:
-    0 0 32px rgba(0,229,255,.12),
-    0 0 64px rgba(0,229,255,.06),
-    inset 0 0 24px rgba(0,229,255,.04);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  /* Removed saturate() and multi-layer shadows for performance */
+  box-shadow:0 0 24px rgba(0,229,255,.08);
   transition:box-shadow .3s ease, border-color .3s ease;
 }
 .card:hover {
-  box-shadow:
-    0 0 40px rgba(0,229,255,.18),
-    0 0 80px rgba(0,229,255,.1),
-    inset 0 0 32px rgba(0,229,255,.06);
-  border-color:rgba(0,229,255,.4);
+  box-shadow:0 0 32px rgba(0,229,255,.15);
+  border-color:rgba(0,229,255,.35);
 }
 .card::before, .card::after,
 .card .ck::before, .card .ck::after {
   content:""; position:absolute; width:12px; height:12px;
-  border-color:#00e5ff; border-style:solid; opacity:.9;
-  filter: drop-shadow(0 0 4px #00e5ff);
+  border-color:#00e5ff; border-style:solid; opacity:.8;
+  /* Removed filter:drop-shadow for performance */
 }
 .card::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
 .card::after  { top:-1px; right:-1px; border-width:2px 2px 0 0; }
 .card .ck::before { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
 .card .ck::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
 
-.card.pink { border-color:rgba(255,45,149,.4); box-shadow:0 0 32px rgba(255,45,149,.15), 0 0 64px rgba(255,45,149,.08), inset 0 0 24px rgba(255,45,149,.06); }
-.card.pink:hover { box-shadow:0 0 40px rgba(255,45,149,.22), 0 0 80px rgba(255,45,149,.12), inset 0 0 32px rgba(255,45,149,.08); border-color:rgba(255,45,149,.55); }
+.card.pink { border-color:rgba(255,45,149,.3); box-shadow:0 0 24px rgba(255,45,149,.1); }
+.card.pink:hover { box-shadow:0 0 32px rgba(255,45,149,.15); border-color:rgba(255,45,149,.45); }
 .card.pink::before, .card.pink::after,
-.card.pink .ck::before, .card.pink .ck::after { border-color:#ff2d95; filter: drop-shadow(0 0 4px #ff2d95); }
+.card.pink .ck::before, .card.pink .ck::after { border-color:#ff2d95; }
 
 .card-title {
   font-size:12px; letter-spacing:.2em; color:#00e5ff;
@@ -431,7 +431,7 @@ main { position:relative; z-index:1; }
   width:40px; height:40px; border-radius:50%;
   background:radial-gradient(circle, #ff5fa8, #b81d63);
   color:#fff; font-size:17px; display:flex; align-items:center; justify-content:center;
-  text-shadow:0 0 8px rgba(255,255,255,.4);
+  /* Removed text-shadow for performance on spinning element */
 }
 .vinyl::after {
   content:""; position:absolute; inset:0; margin:auto;
@@ -536,7 +536,7 @@ main { position:relative; z-index:1; }
   box-shadow:0 0 18px rgba(255,45,149,.25); }
 .blow-tip { margin-top:18px; font-size:12.5px; color:#4d5b78; letter-spacing:.12em; font-family:Consolas, "PingFang SC", monospace; }
 .blow-tip .flame-word { color:#ffcf5c; }
-.blow-tip.done { color:#ff7ad9; text-shadow:0 0 10px rgba(255,45,149,.45); }
+.blow-tip.done { color:#ff7ad9; /* Removed text-shadow for performance */ }
 
 /* 页脚 */
 .footer { margin-top:46px; text-align:center; }
@@ -618,7 +618,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 .ai-core-title {
   font-size:12px; letter-spacing:.2em; color:#00e500;
   margin-bottom:18px; text-align:center;
-  text-shadow:0 0 8px rgba(0,229,0,.6);
+  /* Removed text-shadow for performance */
 }
 .ai-core .tag-row {
   display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
@@ -655,7 +655,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   color:#00e500; font:inherit; font-size:13.5px; letter-spacing:.1em;
   padding:10px 18px; border-radius:4px; cursor:pointer;
   min-height:44px; min-width:100px; white-space:nowrap;
-  transition:all .2s; text-shadow:0 0 6px rgba(0,229,0,.4);
+  transition:all .2s; /* Removed text-shadow for performance */
 }
 .ai-core .exec-btn:active, .ai-core .exec-btn:focus {
   background:#00e500; color:#05060f; box-shadow:0 0 14px rgba(0,229,0,.6);
@@ -920,16 +920,19 @@ const letterText =
 const sc = document.getElementById('stars'), sctx = sc.getContext('2d');
 const MCH = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>'.split('');
 let stars = [], bits = [], glyphs = [];
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+const STAR_COUNT = isMobile ? 40 : 90;
+const BIT_COUNT = isMobile ? 12 : 26;
 const rnd = a => a[Math.random()*a.length|0];
 function initBg(){
   sc.width = innerWidth * devicePixelRatio;
   sc.height = innerHeight * devicePixelRatio;
   sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  stars = Array.from({length:90}, () => ({
+  stars = Array.from({length:STAR_COUNT}, () => ({
     x: Math.random()*innerWidth, y: Math.random()*innerHeight,
     r: Math.random()*1.3 + .3, p: Math.random()*Math.PI*2, s: Math.random()*.9 + .3
   }));
-  bits = Array.from({length:26}, () => ({
+  bits = Array.from({length:BIT_COUNT}, () => ({
     x: Math.random()*innerWidth, y: Math.random()*innerHeight,
     v: Math.random()*.9 + .35,
     ch: rnd(MCH), ch2: rnd(MCH), ch3: rnd(MCH),
@@ -974,6 +977,8 @@ addEventListener('resize', initBg);
 /* ============ 彩带（霓虹数据碎片） ============ */
 const cc = document.getElementById('confetti'), cctx = cc.getContext('2d');
 let confetti = [];
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+const MAX_PARTICLES = isMobile ? 60 : 140; // Fewer particles on mobile
 function sizeConfetti(){
   cc.width = innerWidth * devicePixelRatio; cc.height = innerHeight * devicePixelRatio;
   cctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
@@ -981,7 +986,7 @@ function sizeConfetti(){
 sizeConfetti(); addEventListener('resize', sizeConfetti);
 
 const PALETTE = ['#00e5ff','#ff2d95','#ffe600','#7df9ff','#ff7ad9','#b26bff','#f2f5fb'];
-function burst(x = innerWidth/2, y = innerHeight/2, n = 140){
+function burst(x = innerWidth/2, y = innerHeight/2, n = MAX_PARTICLES){
   for (let i = 0; i < n; i++){
     const ang = Math.random()*Math.PI*2, v = Math.random()*9 + 3;
     confetti.push({
@@ -1009,6 +1014,15 @@ function drawConfetti(){
   requestAnimationFrame(drawConfetti);
 }
 requestAnimationFrame(drawConfetti);
+
+/* Performance: pause animations when tab hidden */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    document.body.style.animationPlayState = 'paused';
+  } else {
+    document.body.style.animationPlayState = 'running';
+  }
+});
 
 /* ============ 背景音乐：右上角常驻黑胶（循环播放 Delacey 版 Dream It Possible） ============ */
 const bgVinyl = document.getElementById('bgVinyl');
@@ -1608,38 +1622,35 @@ function showBless(){
     setTimeout(() => w.classList.add('show'), i * 260));
 }
 
-/* ============ 磁吸翻页：强制吸附最近的 scene ============ */
-let scrollLock = false;
-function snapToNearestScene(){
-  if (scrollLock) return;
-  const scenes = document.querySelectorAll('.scene');
-  let minDist = Infinity;
-  let target = null;
-  const viewportCenter = window.innerHeight / 2 + window.scrollY;
-  scenes.forEach(s => {
-    const rect = s.getBoundingClientRect();
-    const sceneCenter = rect.top + rect.height / 2 + window.scrollY;
-    const dist = Math.abs(sceneCenter - viewportCenter);
-    if (dist < minDist) { minDist = dist; target = s; }
-  });
-  if (target) {
-    scrollLock = true;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => { scrollLock = false; }, 600);
+/* ============ 磁吸翻页：仅桌面端启用，移动端依赖原生 scroll-snap ============ */
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+if (!isTouchDevice) {
+  let scrollLock = false;
+  function snapToNearestScene(){
+    if (scrollLock) return;
+    const scenes = document.querySelectorAll('.scene');
+    let minDist = Infinity;
+    let target = null;
+    const viewportCenter = window.innerHeight / 2 + window.scrollY;
+    scenes.forEach(s => {
+      const rect = s.getBoundingClientRect();
+      const sceneCenter = rect.top + rect.height / 2 + window.scrollY;
+      const dist = Math.abs(sceneCenter - viewportCenter);
+      if (dist < minDist) { minDist = dist; target = s; }
+    });
+    if (target) {
+      scrollLock = true;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => { scrollLock = false; }, 600);
+    }
   }
+  let wheelTimer = null;
+  window.addEventListener('wheel', e => {
+    if (e.deltaY === 0) return;
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => snapToNearestScene(), 80);
+  }, { passive: true });
 }
-let wheelTimer = null;
-window.addEventListener('wheel', e => {
-  if (e.deltaY === 0) return;
-  clearTimeout(wheelTimer);
-  wheelTimer = setTimeout(() => snapToNearestScene(), 80);
-}, { passive: true });
-let touchStartY = 0;
-window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
-window.addEventListener('touchend', e => {
-  const dy = touchStartY - e.changedTouches[0].clientY;
-  if (Math.abs(dy) > 30) snapToNearestScene();
-}, { passive: true });
 
 function initScenes(){
   const io = new IntersectionObserver(entries => {
