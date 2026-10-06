@@ -8,7 +8,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 html, body { height:100%; }
 
 /* Performance: reduce motion for users who prefer it */
@@ -24,11 +24,21 @@ html, body { height:100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   background:
-    radial-gradient(120% 55% at 50% 108%, rgba(255,45,149,.15), transparent 62%),
-    radial-gradient(120% 90% at 50% 0%, #140b2a 0%, #0a0a1e 45%, #05060f 100%);
-  color:#d8e6f2;
+    radial-gradient(120% 55% at 50% 108%, rgba(255,45,149,.18), transparent 62%),
+    radial-gradient(120% 90% at 50% 0%, #160c30 0%, #0c0a1f 45%, #060712 100%);
+  color:#e0eaf0;
   overflow-x:hidden;
-  /* Removed body-level filter - was forcing full-page GPU compositing */
+  /* Subtle HDR-like enhancement via background depth */
+}
+
+/* HDR-style glow layer - cheap, no filter on body */
+.hdr-glow {
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:
+    radial-gradient(60% 40% at 30% 20%, rgba(0,229,255,.08), transparent 70%),
+    radial-gradient(50% 35% at 70% 80%, rgba(255,45,149,.06), transparent 65%);
+  mix-blend-mode: plus-lighter;
+  opacity: 0.6;
 }
 
 /* ---------- 背景：霓虹网格 + 扫描线 ---------- */
@@ -115,57 +125,27 @@ body {
 .bg-vinyl.spinning .vinyl-needle { transform:rotate(-18deg); }
 @keyframes bgSpin { to { transform:rotate(360deg); } }
 
-/* ---------- 歌词面板 ---------- */
-.lyrics-panel {
-  position:fixed; bottom:90px; right:18px; z-index:41;
-  width:min(320px, 90vw); max-height:60vh;
-  background:rgba(5,7,17,.92);
-  border:1px solid rgba(255,45,149,.35);
-  border-radius:10px;
-  padding:16px 18px;
+/* ---------- 顶部单行歌词显示 ---------- */
+.lyrics-top {
+  position:fixed; top:44px; left:50%; transform:translateX(-50%);
+  z-index:41; pointer-events:none;
   font-family:Consolas, "PingFang SC", monospace;
-  font-size:12.5px; line-height:2; color:#d8e6f2;
-  box-shadow:0 8px 32px rgba(255,45,149,.15), inset 0 0 24px rgba(255,45,149,.04);
-  overflow-y:auto;
-  opacity:0; visibility:hidden; transform:translateY(16px);
-  transition:opacity .4s ease, visibility .4s, transform .4s cubic-bezier(.3,.6,.4,1);
-  pointer-events:none;
+  font-size:13px; line-height:1.6; letter-spacing:.06em;
+  color:rgba(255,45,149,.85);
+  text-shadow:0 0 8px rgba(255,45,149,.4), 0 0 16px rgba(255,45,149,.2);
+  white-space:nowrap; overflow:hidden;
+  opacity:0; transition:opacity .5s ease;
+  padding:0 24px; max-width:calc(100vw - 48px);
 }
-.lyrics-panel.show {
-  opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+.lyrics-top.show { opacity:1; }
+.lyrics-top .line {
+  display:inline-block;
+  transition:opacity .3s, color .3s, transform .3s;
 }
-.lyrics-panel::before, .lyrics-panel::after {
-  content:""; position:absolute; width:10px; height:10px;
-  border-color:#ff2d95; border-style:solid; opacity:.7;
-}
-.lyrics-panel::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
-.lyrics-panel::after  { top:-1px; right:-1px; border-width:2px 2px 0 0; }
-.lyrics-title {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:10px; padding-bottom:8px;
-  border-bottom:1px solid rgba(255,45,149,.2);
-  font-size:11px; letter-spacing:.15em; color:#ff7ad9;
-}
-.lyrics-title .close-btn {
-  background:none; border:none; color:#ff7ad9; font:inherit;
-  cursor:pointer; padding:2px 6px; border-radius:3px;
-  transition:background .2s, color .2s;
-}
-.lyrics-title .close-btn:hover { background:rgba(255,45,149,.15); }
-.lyrics-line {
-  white-space:pre-wrap; word-break:break-all;
-  opacity:.5; transition:opacity .3s, color .3s, transform .3s;
-  padding:2px 0; cursor:default;
-}
-.lyrics-line.active {
-  opacity:1; color:#ff2d95; /* Removed text-shadow for performance */
-  transform:translateX(4px);
-}
-.lyrics-line::before { content:"> "; color:rgba(255,45,149,.5); margin-right:4px; }
-
-@media (max-width:480px) {
-  .lyrics-panel { bottom:84px; right:12px; left:12px; width:auto; max-height:45vh; }
-  .bg-vinyl { bottom:12px; right:12px; }
+.lyrics-top .line.active {
+  color:#ff7ad9;
+  text-shadow:0 0 12px rgba(255,122,217,.6), 0 0 24px rgba(255,122,217,.3);
+  transform:scale(1.02);
 }
 
 /* ---------- 启动 / 解密遮罩 ---------- */
@@ -678,6 +658,47 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 @keyframes coreCaret { 50% { opacity:0; } }
 .ai-core .hint { margin-top:10px; text-align:center; font-size:11px; color:rgba(0,229,0,.55); letter-spacing:.1em; }
 
+/* AI Core visualization */
+.core-viz {
+  position:relative; width:160px; height:160px; margin:0 auto 18px;
+  pointer-events:none;
+}
+.core-ring {
+  position:absolute; inset:0; margin:auto; border-radius:50%;
+  border:1px solid rgba(0,229,0,.25);
+  animation:coreSpin 8s linear infinite;
+}
+.core-ring.r1 { width:100%; height:100%; animation-duration:12s; }
+.core-ring.r2 { width:70%; height:70%; animation-duration:8s; animation-direction:reverse; border-color:rgba(0,229,0,.18); }
+.core-ring.r3 { width:40%; height:40%; animation-duration:6s; border-color:rgba(0,229,0,.12); }
+@keyframes coreSpin { to { transform:rotate(360deg); } }
+.core-center {
+  position:absolute; inset:0; margin:auto; width:28px; height:28px; border-radius:50%;
+  background:radial-gradient(circle, #00e500 0%, #008a00 70%, transparent 100%);
+  box-shadow:0 0 20px rgba(0,229,0,.6), 0 0 40px rgba(0,229,0,.3), inset 0 0 8px rgba(255,255,255,.3);
+  animation:coreBeat 2s ease-in-out infinite;
+}
+@keyframes coreBeat { 0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(0,229,0,.6),0 0 40px rgba(0,229,0,.3)} 50%{transform:scale(1.15);box-shadow:0 0 30px rgba(0,229,0,.8),0 0 60px rgba(0,229,0,.5)} }
+.core-pulse {
+  position:absolute; inset:0; margin:auto; width:100%; height:100%; border-radius:50%;
+  border:1px solid rgba(0,229,0,.3);
+  animation:corePulse 2.5s ease-out infinite;
+}
+@keyframes corePulse { 0%{transform:scale(.2);opacity:.6} 100%{transform:scale(1.4);opacity:0} }
+
+.core-status {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-bottom:16px; padding:8px 14px;
+  background:rgba(0,229,0,.06); border:1px solid rgba(0,229,0,.2);
+  border-radius:4px; font-size:11px; letter-spacing:.15em; color:#00e500;
+}
+.core-status .status-dot {
+  width:8px; height:8px; border-radius:50%; background:#00e500;
+  box-shadow:0 0 8px #00e500, 0 0 16px rgba(0,229,0,.4);
+  animation:statusBlink 1.5s ease-in-out infinite;
+}
+@keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
 /* 手机横屏/小屏适配 */
 @media (max-width:380px) {
   .ai-core .tag-btn { padding:10px 12px; font-size:12.5px; }
@@ -691,6 +712,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 </head>
 <body>
 
+<div class="hdr-glow"></div>
 <div class="grid-bg"></div>
 <canvas id="stars"></canvas>
 <div class="scanlines"></div>
@@ -705,14 +727,8 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   <div class="vinyl-needle"></div>
 </div>
 
-<!-- 歌词面板 -->
-<div id="lyricsPanel" class="lyrics-panel" aria-hidden="true">
-  <div class="lyrics-title">
-    <span>🎵 Dream It Possible — Delacey</span>
-    <button class="close-btn" id="lyricsClose" aria-label="关闭歌词">×</button>
-  </div>
-  <div class="lyrics-content" id="lyricsContent"></div>
-</div>
+<!-- 顶部单行歌词显示 -->
+<div id="lyricsTop" class="lyrics-top" aria-hidden="true"><span class="line" data-index="-1"></span></div>
 
 <!-- 启动解密 -->
 <div id="unbox">
@@ -783,17 +799,33 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   <section class="scene" id="s3b">
     <section class="ai-core reveal">
       <span class="ck"></span>
+      <!-- Animated core visualization -->
+      <div class="core-viz" aria-hidden="true">
+        <div class="core-ring r1"></div>
+        <div class="core-ring r2"></div>
+        <div class="core-ring r3"></div>
+        <div class="core-center"></div>
+        <div class="core-pulse"></div>
+      </div>
       <div class="ai-core-title">◈ AI NEURAL CORE v18.0.0 ◈</div>
+      <div class="core-status" id="coreStatus">
+        <span class="status-dot"></span>
+        <span>SYSTEM READY · 神经链路稳定</span>
+      </div>
       <div class="tag-row" id="aiTags">
         <button class="tag-btn" data-kw="未来">【 未来 】</button>
         <button class="tag-btn" data-kw="焦虑">【 焦虑 】</button>
         <button class="tag-btn" data-kw="疲惫">【 疲惫 】</button>
+        <button class="tag-btn" data-kw="迷茫">【 迷茫 】</button>
+        <button class="tag-btn" data-kw="梦想">【 梦想 】</button>
+        <button class="tag-btn" data-kw="勇气">【 勇气 】</button>
       </div>
       <div class="input-row">
         <input class="input-field" id="aiInput" type="text" placeholder="输入关键词或点上方标签 · 输入任意词亦可" spellcheck="false" autocomplete="off">
         <button class="exec-btn" id="aiExec">▶ EXECUTE</button>
       </div>
       <div class="output" id="aiOutput"></div>
+      <p class="hint">// 语义解析引擎 · 本地运行 · 无上传 · 点击标签即可触发</p>
     </section>
   </section>
 
@@ -1065,52 +1097,46 @@ const lyricsData = [
   { t: 124.0, txt: "I'm writing my story" }
 ];
 
-const lyricsPanel = document.getElementById('lyricsPanel');
-const lyricsContent = document.getElementById('lyricsContent');
-const lyricsClose = document.getElementById('lyricsClose');
-let lyricsHtmlBuilt = false;
+const lyricsTop = document.getElementById('lyricsTop');
+const lyricsLine = lyricsTop.querySelector('.line');
 let lyricsSyncInterval = null;
 
-function buildLyricsHtml() {
-  if (lyricsHtmlBuilt) return;
-  lyricsContent.innerHTML = lyricsData.map((line, i) =>
-    `<div class="lyrics-line" data-index="${i}" data-time="${line.t}">${line.txt}</div>`
-  ).join('');
-  lyricsHtmlBuilt = true;
-}
-
-function showLyricsPanel() {
-  buildLyricsHtml();
-  lyricsPanel.classList.add('show');
-  lyricsPanel.setAttribute('aria-hidden', 'false');
+function showLyricsTop() {
+  lyricsTop.classList.add('show');
+  lyricsTop.setAttribute('aria-hidden', 'false');
   startLyricsSync();
 }
 
-function hideLyricsPanel() {
-  lyricsPanel.classList.remove('show');
-  lyricsPanel.setAttribute('aria-hidden', 'true');
+function hideLyricsTop() {
+  lyricsTop.classList.remove('show');
+  lyricsTop.setAttribute('aria-hidden', 'true');
   stopLyricsSync();
+  lyricsLine.textContent = '';
+  lyricsLine.dataset.index = '-1';
 }
 
 function startLyricsSync() {
   stopLyricsSync();
   lyricsSyncInterval = setInterval(() => {
     const ct = bgAudio.currentTime;
-    const lines = lyricsContent.querySelectorAll('.lyrics-line');
     let activeIdx = -1;
-    lines.forEach((el, i) => {
-      const t = parseFloat(el.dataset.time);
-      if (t <= ct) activeIdx = i;
-      el.classList.toggle('active', i === activeIdx);
-    });
-    // 自动滚动到当前行
-    if (activeIdx >= 0) {
-      const activeEl = lines[activeIdx];
-      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    let activeText = '';
+    for (let i = 0; i < lyricsData.length; i++) {
+      if (lyricsData[i].t <= ct) {
+        activeIdx = i;
+        activeText = lyricsData[i].txt;
+      } else break;
     }
-    // 循环播放时重置
+    if (activeIdx >= 0 && parseInt(lyricsLine.dataset.index) !== activeIdx) {
+      lyricsLine.textContent = activeText;
+      lyricsLine.dataset.index = activeIdx;
+      lyricsLine.classList.add('active');
+      // Remove active after a short delay
+      setTimeout(() => lyricsLine.classList.remove('active'), 300);
+    }
+    // Loop reset
     if (bgAudio.loop && ct > lyricsData[lyricsData.length - 1].t + 5) {
-      lines.forEach(el => el.classList.remove('active'));
+      lyricsLine.classList.remove('active');
     }
   }, 200);
 }
@@ -1122,28 +1148,25 @@ function stopLyricsSync() {
   }
 }
 
-lyricsClose.addEventListener('click', (e) => {
-  e.stopPropagation();
-  hideLyricsPanel();
-});
-
-// 点击面板外部关闭（可选，这里不阻止，让用户手动关闭）
-
 function tryBgAutoplay(){
   if (!opened) return;
   bgAudio.play().then(() => {
     bgPlaying = true;
     bgVinyl.classList.add('spinning');
-    showLyricsPanel();
+    showLyricsTop();
   }).catch(() => { /* 等待用户交互 */ });
+}
+
+function tryAutoPlay(){
+  tryBgAutoplay();
 }
 
 bgVinyl.addEventListener('click', () => {
   if (bgPlaying){
     bgAudio.pause(); bgPlaying = false; bgVinyl.classList.remove('spinning');
-    hideLyricsPanel();
+    hideLyricsTop();
   } else {
-    bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); showLyricsPanel(); })
+    bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); showLyricsTop(); })
       .catch(() => { bgVinyl.title = '播放被阻止，请再试一次'; });
   }
 });
@@ -1151,8 +1174,7 @@ bgVinyl.addEventListener('click', () => {
 // 音乐自然结束或循环时重置歌词高亮
 bgAudio.addEventListener('timeupdate', () => {
   if (bgAudio.loop && bgAudio.currentTime < 1) {
-    // 循环重置
-    lyricsContent.querySelectorAll('.lyrics-line').forEach(el => el.classList.remove('active'));
+    lyricsLine.classList.remove('active');
   }
 });
 
@@ -1638,14 +1660,14 @@ if (!isTouchDevice) {
     if (target) {
       scrollLock = true;
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => { scrollLock = false; }, 600);
+      setTimeout(() => { scrollLock = false; }, 800);
     }
   }
   let wheelTimer = null;
   window.addEventListener('wheel', e => {
     if (e.deltaY === 0) return;
     clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => snapToNearestScene(), 80);
+    wheelTimer = setTimeout(() => snapToNearestScene(), 200);
   }, { passive: true });
 }
 
