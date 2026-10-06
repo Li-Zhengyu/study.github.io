@@ -4,11 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#070512">
+<meta name="description" content="一封来自2026年的信，碰一下，拆开你的十八岁。">
+<meta property="og:title" content="致你的十八岁">
+<meta property="og:description" content="没有联网，没有倒计时，只有我想对你说的话。">
+<meta property="og:type" content="website">
 <title>致你的十八岁</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+/* MOBILE: 暂停所有 CSS 动画（animation-play-state 不可继承，必须用 * 规则） */
+body.paused, body.paused * { animation-play-state:paused !important; }
+
+/* MOBILE: 后台标签页不可见时由 JS 切换 .paused；rAF 循环由 JS cancel */
+
+html { scroll-snap-type: y proximity; overscroll-behavior-y:none; }
 html, body { height:100%; }
 
 /* Performance: reduce motion for users who prefer it */
@@ -40,6 +49,10 @@ body {
   mix-blend-mode: plus-lighter;
   opacity: 0.6;
 }
+/* MOBILE: 触屏设备去掉全屏混合模式（低端 GPU 全屏合成很贵） */
+@media (pointer:coarse) {
+  .hdr-glow { mix-blend-mode:normal; opacity:.4; }
+}
 
 /* ---------- 背景：霓虹网格 + 扫描线 ---------- */
 .grid-bg {
@@ -68,11 +81,12 @@ body {
   background:rgba(5,7,17,.85);
   border-bottom:1px solid rgba(0,229,255,.3);
   overflow:hidden; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  padding-top:env(safe-area-inset-top); /* MOBILE: 刘海屏安全区 */
   /* Removed saturate() and box-shadow for performance */
 }
 .ticker-in {
   display:inline-block; white-space:nowrap; padding:5px 0;
-  font:10px Consolas, monospace; letter-spacing:.18em;
+  font:11px Consolas, monospace; letter-spacing:.18em; /* OPTIMIZED: 10px→11px 手机更清晰 */
   color:rgba(0,229,255,.85);
   /* Removed text-shadow for performance */
   animation:tick 26s linear infinite;
@@ -90,7 +104,7 @@ body {
 
 /* ---------- 右上角常驻黑胶（背景音乐） ---------- */
 .bg-vinyl {
-  position:fixed; bottom:18px; right:18px; z-index:42;
+  position:fixed; bottom:calc(18px + env(safe-area-inset-bottom)); right:calc(18px + env(safe-area-inset-right)); z-index:42; /* MOBILE: 安全边距 */
   width:56px; height:56px; cursor:pointer;
   transition:transform .2s;
   /* Removed filter:drop-shadow for performance */
@@ -102,7 +116,7 @@ body {
     radial-gradient(circle, #ff2d95 0 17%, #12101f 18% 30%, transparent 30%),
     repeating-radial-gradient(circle at 50% 50%, #0d0a1c 0 3px, #191537 3px 6px);
   border:1px solid rgba(255,45,149,.45);
-  box-shadow:0 0 18px rgba(255,45,149,.3), inset 0 0 24px rgba(0,0,0,.7);
+  box-shadow:0 0 18px rgba(255,45,149,.3); /* OPTIMIZED: 合并为1层 */
   /* Simplified from 3-layer shadow to 1 */
 }
 .bg-vinyl .vinyl-disc::before {
@@ -127,12 +141,12 @@ body {
 
 /* ---------- 顶部单行歌词显示 ---------- */
 .lyrics-top {
-  position:fixed; top:44px; left:50%; transform:translateX(-50%);
+  position:fixed; top:calc(44px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); /* MOBILE: 安全区 */
   z-index:41; pointer-events:none;
   font-family:Consolas, "PingFang SC", monospace;
   font-size:13px; line-height:1.6; letter-spacing:.06em;
   color:rgba(255,45,149,.85);
-  text-shadow:0 0 8px rgba(255,45,149,.4), 0 0 16px rgba(255,45,149,.2);
+  text-shadow:0 0 8px rgba(255,45,149,.4); /* OPTIMIZED: 合并为1层 */
   white-space:nowrap; overflow:hidden;
   opacity:0; transition:opacity .5s ease;
   padding:0 24px; max-width:calc(100vw - 48px);
@@ -144,7 +158,7 @@ body {
 }
 .lyrics-top .line.active {
   color:#ff7ad9;
-  text-shadow:0 0 12px rgba(255,122,217,.6), 0 0 24px rgba(255,122,217,.3);
+  text-shadow:0 0 12px rgba(255,122,217,.6); /* OPTIMIZED: 合并为1层 */
   transform:scale(1.02);
 }
 
@@ -204,14 +218,16 @@ main { position:relative; z-index:1; }
 .scene {
   min-height:100svh;
   scroll-snap-align:start;
-  scroll-snap-stop: always;
+  scroll-snap-stop:normal; /* OPTIMIZED: always→normal，iOS 滑动不再卡顿 */
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:76px 24px 64px;
+  padding-left:max(24px, env(safe-area-inset-left)); /* MOBILE: 安全区 */
+  padding-right:max(24px, env(safe-area-inset-right));
   max-width:560px; margin:0 auto;
 }
 
 /* 浮现动画 */
-.reveal { opacity:0; transform:translateY(34px); transition:opacity 1s ease, transform 1s ease; will-change: opacity, transform; }
+.reveal { opacity:0; transform:translateY(34px); transition:opacity 1s ease, transform 1s ease; } /* OPTIMIZED: 移除 will-change，少占显存 */
 .reveal.in { opacity:1; transform:none; }
 .reveal.d1 { transition-delay:.15s; } .reveal.d2 { transition-delay:.3s; }
 .reveal.d3 { transition-delay:.45s; } .reveal.d4 { transition-delay:.6s; }
@@ -222,8 +238,7 @@ main { position:relative; z-index:1; }
 .pulse-dot { position:relative; width:52px; height:52px; margin-bottom:34px; }
 .pulse-dot i {
   position:absolute; inset:0; margin:auto; width:10px; height:10px; border-radius:50%;
-  background:#00e5ff; box-shadow:0 0 14px #00e5ff, 0 0 28px rgba(0,229,255,.5);
-  /* Removed filter:brightness and 3rd shadow layer */
+  background:#00e5ff; box-shadow:0 0 14px #00e5ff; /* OPTIMIZED: 合并为1层阴影 */
 }
 .pulse-dot::before, .pulse-dot::after {
   content:""; position:absolute; inset:0; border:1px solid rgba(0,229,255,.55);
@@ -243,8 +258,7 @@ main { position:relative; z-index:1; }
   padding:6px 14px; border-radius:4px;
   font-family:Consolas, monospace;
   background:rgba(0,229,255,.05);
-  box-shadow:0 0 12px rgba(0,229,255,.15), inset 0 0 12px rgba(0,229,255,.06);
-  /* Simplified from 3-layer to 2-layer shadow, removed text-shadow */
+  box-shadow:0 0 12px rgba(0,229,255,.15); /* OPTIMIZED: 合并为1层 */
   animation:blink 2.6s ease-in-out infinite;
 }
 @keyframes blink { 0%,100%{opacity:.55} 50%{opacity:1} }
@@ -297,13 +311,11 @@ main { position:relative; z-index:1; }
 /* ===== 幕通用：HUD 角框卡片 ===== */
 .card {
   width:100%;
-  background:rgba(10,14,30,.65);
+  background:rgba(10,14,30,.92); /* OPTIMIZED: 半透明纯色替代 backdrop-filter，低端安卓省 GPU */
   border:1px solid rgba(0,229,255,.2);
   border-radius:8px;
   padding:28px 22px;
   position:relative;
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  /* Removed saturate() and multi-layer shadows for performance */
   box-shadow:0 0 24px rgba(0,229,255,.08);
   transition:box-shadow .3s ease, border-color .3s ease;
 }
@@ -372,7 +384,7 @@ main { position:relative; z-index:1; }
   position:absolute; right:12px; top:0;
   width:52px; height:52px; border-radius:50%;
   background:radial-gradient(circle at 36% 34%, #fff9e8 0%, #ffe9a8 55%, #f5c96a 100%);
-  box-shadow:0 0 26px rgba(255,220,140,.5), 0 0 70px rgba(255,220,140,.18);
+  box-shadow:0 0 26px rgba(255,220,140,.4); /* OPTIMIZED: 合并为1层 */
   opacity:0; transform:translateY(24px); transition:opacity 1.4s ease .5s, transform 1.4s ease .5s;
 }
 .moon.in { opacity:1; transform:none; }
@@ -401,7 +413,7 @@ main { position:relative; z-index:1; }
     radial-gradient(circle, #ff2d95 0 17%, #12101f 18% 30%, transparent 30%),
     repeating-radial-gradient(circle at 50% 50%, #0d0a1c 0 3px, #191537 3px 6px);
   border:1px solid rgba(255,45,149,.45);
-  box-shadow:0 0 26px rgba(255,45,149,.28), inset 0 0 34px rgba(0,0,0,.65);
+  box-shadow:0 0 26px rgba(255,45,149,.28); /* OPTIMIZED: 合并为1层 */
   cursor:pointer;
   transition:box-shadow .4s;
 }
@@ -417,7 +429,6 @@ main { position:relative; z-index:1; }
   width:6px; height:6px; border-radius:50%; background:#05060f;
 }
 .vinyl.spinning { animation:spin 3.2s linear infinite; }
-.vinyl.spinning { box-shadow:0 0 40px rgba(255,45,149,.5), inset 0 0 34px rgba(0,0,0,.65); }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 .music-text {
@@ -485,7 +496,7 @@ main { position:relative; z-index:1; }
   width:16px; height:24px; cursor:pointer;
   background:radial-gradient(circle at 50% 70%, #fff6c8 0%, #ffcf5c 45%, #ff9a3d 80%, transparent 100%);
   border-radius:50% 50% 50% 50% / 62% 62% 38% 38%;
-  box-shadow:0 0 22px 6px rgba(255,190,90,.55), 0 0 44px 10px rgba(255,140,60,.15);
+  box-shadow:0 0 22px 6px rgba(255,190,90,.5); /* OPTIMIZED: 合并为1层 */
   animation:flicker .28s ease-in-out infinite alternate;
   transition:transform .3s, opacity .3s;
 }
@@ -579,9 +590,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   border-radius:8px;
   padding:24px 20px;
   position:relative;
-  box-shadow:
-    0 0 16px rgba(0,229,0,.12),
-    inset 0 0 24px rgba(0,229,0,.04);
+  box-shadow:0 0 16px rgba(0,229,0,.12); /* OPTIMIZED: 合并为1层 */
   font-family:Consolas, "SF Mono", Menlo, monospace;
 }
 .ai-core::before, .ai-core::after,
@@ -641,7 +650,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 }
 .ai-core .exec-btn:disabled { opacity:.5; cursor:not-allowed; }
 .ai-core .output {
-  min-height:80px; max-height:220px; overflow-y:auto;
+  min-height:80px; max-height:300px; overflow-y:auto; /* OPTIMIZED: 220px→300px，长回复少内滚 */
   background:rgba(0,10,0,.5);
   border:1px solid rgba(0,229,0,.2);
   border-radius:4px; padding:14px 12px;
@@ -675,10 +684,10 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 .core-center {
   position:absolute; inset:0; margin:auto; width:28px; height:28px; border-radius:50%;
   background:radial-gradient(circle, #00e500 0%, #008a00 70%, transparent 100%);
-  box-shadow:0 0 20px rgba(0,229,0,.6), 0 0 40px rgba(0,229,0,.3), inset 0 0 8px rgba(255,255,255,.3);
+  box-shadow:0 0 24px rgba(0,229,0,.5); /* OPTIMIZED: 静态1层，动画不再碰 box-shadow */
   animation:coreBeat 2s ease-in-out infinite;
 }
-@keyframes coreBeat { 0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(0,229,0,.6),0 0 40px rgba(0,229,0,.3)} 50%{transform:scale(1.15);box-shadow:0 0 30px rgba(0,229,0,.8),0 0 60px rgba(0,229,0,.5)} }
+@keyframes coreBeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
 .core-pulse {
   position:absolute; inset:0; margin:auto; width:100%; height:100%; border-radius:50%;
   border:1px solid rgba(0,229,0,.3);
@@ -694,7 +703,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 }
 .core-status .status-dot {
   width:8px; height:8px; border-radius:50%; background:#00e500;
-  box-shadow:0 0 8px #00e500, 0 0 16px rgba(0,229,0,.4);
+  box-shadow:0 0 8px #00e500; /* OPTIMIZED: 合并为1层 */
   animation:statusBlink 1.5s ease-in-out infinite;
 }
 @keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.4} }
@@ -705,6 +714,31 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
   .ai-core .exec-btn { padding:10px 14px; font-size:12.5px; }
   .card { padding:24px 16px; }
 }
+/* MOBILE: 全手机适配 —— 输入框 16px 防 iOS 自动放大；触控目标 ≥44px；常驻黑胶缩小避内容 */
+@media (pointer:coarse) {
+  .ai-core .input-field { font-size:16px; /* iOS focus 自动放大阈值 */ }
+  .btn-neon { min-height:44px; }
+  .bg-vinyl { width:46px; height:46px; }
+  .bg-vinyl .vinyl-disc { width:40px; height:40px; }
+  .ai-core { padding:20px 14px; }
+  .core-viz { width:132px; height:132px; }
+}
+/* MOBILE: 长图捕获 —— fixed 装饰层铺满整页高度，隐藏纯 UI 控件 */
+body.capturing .hdr-glow,
+body.capturing .grid-bg,
+body.capturing .scanlines,
+body.capturing #stars {
+  position:absolute !important;
+  inset:auto !important;
+  top:0; left:0;
+  width:100%;
+  height:var(--cap-h, 100vh);
+}
+body.capturing #confetti,
+body.capturing #glitchBars,
+body.capturing #hud,
+body.capturing .bg-vinyl,
+body.capturing .lyrics-top { display:none !important; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior:auto; }
 }
@@ -722,7 +756,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 <div id="hud"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
 
 <!-- 右上角常驻黑胶：背景音乐控制 -->
-<div id="bgVinyl" class="bg-vinyl" title="点击播放/暂停背景音乐 Dream It Possible (Delacey)">
+<div id="bgVinyl" class="bg-vinyl" role="button" tabindex="0" aria-label="播放或暂停背景音乐 Dream It Possible" title="点击播放/暂停背景音乐 Dream It Possible (Delacey)">
   <div class="vinyl-disc"></div>
   <div class="vinyl-needle"></div>
 </div>
@@ -822,7 +856,7 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
       </div>
       <div class="input-row">
         <input class="input-field" id="aiInput" type="text" placeholder="输入关键词或点上方标签 · 输入任意词亦可" spellcheck="false" autocomplete="off">
-        <button class="exec-btn" id="aiExec">▶ EXECUTE</button>
+        <button class="exec-btn" id="aiExec" aria-label="执行，解析输入内容">▶ EXECUTE</button>
       </div>
       <div class="output" id="aiOutput"></div>
       <p class="hint">// 语义解析引擎 · 本地运行 · 无上传 · 点击标签即可触发</p>
@@ -834,14 +868,14 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
     <section class="card pink">
       <span class="ck"></span>
       <div class="card-title"><span class="dot">●</span> PLAY_TRACK.EXE — 一首属于我们的歌</div>
-      <div class="vinyl reveal d1" id="vinyl" title="点我播放"></div>
+      <div class="vinyl reveal d1" id="vinyl" role="button" tabindex="0" aria-label="播放芯片生日歌" title="点我播放"></div>
       <p class="music-text reveal d2">
         不知道你此刻的心情怎样。<br>
         如果觉得累了，就<span class="cy">戴上耳机</span>，<br>
         把音量调到刚刚好。
       </p>
       <div class="btn-row reveal d3">
-        <button class="btn-neon" id="playBtn">▶ 播放芯片生日歌</button>
+        <button class="btn-neon" id="playBtn" aria-label="播放芯片生日歌">▶ 播放芯片生日歌</button>
         <a class="btn-neon pk" id="localBtn" href="dream-it-possible.mp3" target="_blank" rel="noopener">↗ 本地 · 我的梦 (张靓颖)</a>
       </div>
       <p class="music-note reveal d4">// 左键黑胶/按钮 = 页面内合成 8-bit 生日歌<br>// 右键「本地 · 我的梦」另存为 / 新标签直链播放</p>
@@ -956,11 +990,12 @@ let stars = [], bits = [], glyphs = [];
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 const STAR_COUNT = isMobile ? 40 : 90;
 const BIT_COUNT = isMobile ? 12 : 26;
+const DPR = Math.min(2, window.devicePixelRatio || 1); /* MOBILE: dpr 上限 2，像素开销最高减半 */
 const rnd = a => a[Math.random()*a.length|0];
 function initBg(){
-  sc.width = innerWidth * devicePixelRatio;
-  sc.height = innerHeight * devicePixelRatio;
-  sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  sc.width = innerWidth * DPR;
+  sc.height = innerHeight * DPR;
+  sctx.setTransform(DPR,0,0,DPR,0,0);
   stars = Array.from({length:STAR_COUNT}, () => ({
     x: Math.random()*innerWidth, y: Math.random()*innerHeight,
     r: Math.random()*1.3 + .3, p: Math.random()*Math.PI*2, s: Math.random()*.9 + .3
@@ -973,7 +1008,10 @@ function initBg(){
     c: Math.random() < .75 ? '#00e5ff' : '#ff2d95'
   }));
 }
+let rafBg = null, bgFrame = 0;
 function drawBg(t){
+  /* MOBILE: 跳帧至 ~30fps，省电省 GPU（时间戳驱动，动画速度不受影响） */
+  if (isMobile && (bgFrame++ % 2)) { rafBg = requestAnimationFrame(drawBg); return; }
   sctx.clearRect(0,0,innerWidth,innerHeight);
   sctx.font = '11px Consolas, monospace';
   for (const st of stars){
@@ -1001,19 +1039,21 @@ function drawBg(t){
     sctx.fillText(g.ch, g.x + (Math.random()*4 - 2), g.y);
   }
   sctx.globalAlpha = 1;
-  requestAnimationFrame(drawBg);
+  rafBg = requestAnimationFrame(drawBg);
 }
 initBg();
-requestAnimationFrame(drawBg);
+rafBg = requestAnimationFrame(drawBg);
 addEventListener('resize', initBg);
 
-/* ============ 彩带（霓虹数据碎片） ============ */
+/* ============ 彩带（霓虹数据碎片）===========
+   OPTIMIZED: 按需运行 —— 只在 burst 后启动 rAF，粒子落尽自动停循环 */
 const cc = document.getElementById('confetti'), cctx = cc.getContext('2d');
 let confetti = [];
+let confettiRunning = false, rafConf = null;
 const MAX_PARTICLES = isMobile ? 60 : 140; // Fewer particles on mobile
 function sizeConfetti(){
-  cc.width = innerWidth * devicePixelRatio; cc.height = innerHeight * devicePixelRatio;
-  cctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  cc.width = innerWidth * DPR; cc.height = innerHeight * DPR;
+  cctx.setTransform(DPR,0,0,DPR,0,0);
 }
 sizeConfetti(); addEventListener('resize', sizeConfetti);
 
@@ -1029,6 +1069,12 @@ function burst(x = innerWidth/2, y = innerHeight/2, n = MAX_PARTICLES){
       life: 1
     });
   }
+  if (!confettiRunning) startConfettiLoop();
+}
+function startConfettiLoop(){
+  if (confettiRunning) return;
+  confettiRunning = true;
+  rafConf = requestAnimationFrame(drawConfetti);
 }
 function drawConfetti(){
   cctx.clearRect(0,0,innerWidth,innerHeight);
@@ -1043,23 +1089,33 @@ function drawConfetti(){
     cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
     cctx.restore();
   }
-  requestAnimationFrame(drawConfetti);
+  if (confetti.length){
+    rafConf = requestAnimationFrame(drawConfetti);
+  } else {
+    confettiRunning = false; /* 播完立即停循环并清空画布 */
+    cctx.clearRect(0,0,innerWidth,innerHeight);
+  }
 }
-requestAnimationFrame(drawConfetti);
 
-/* Performance: pause animations when tab hidden */
+/* Performance: 后台标签页不可见 → 暂停 CSS 动画 + cancel 所有 rAF
+   OPTIMIZED: animation-play-state 不可继承，旧写法只改 body 无效；改用 class + * 规则 */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    document.body.style.animationPlayState = 'paused';
+    document.body.classList.add('paused');
+    if (rafBg) { cancelAnimationFrame(rafBg); rafBg = null; }
+    if (rafConf) { cancelAnimationFrame(rafConf); rafConf = null; confettiRunning = false; }
   } else {
-    document.body.style.animationPlayState = 'running';
+    document.body.classList.remove('paused');
+    rafBg = requestAnimationFrame(drawBg);
+    if (confetti.length) startConfettiLoop();
   }
 });
 
 /* ============ 背景音乐：右上角常驻黑胶（循环播放 Delacey 版 Dream It Possible） ============ */
 const bgVinyl = document.getElementById('bgVinyl');
 const bgAudio = new Audio('dream-it-possible-delacey.mp3');
-bgAudio.loop = true; bgAudio.preload = 'auto'; bgAudio.volume = 0.35;
+bgAudio.loop = true; bgAudio.preload = 'none'; bgAudio.volume = 0.35; /* OPTIMIZED: 按需加载，手机省流量省电 */
+bgAudio.addEventListener('error', () => { bgVinyl.title = '[ 音频不可用 ]'; });
 let bgPlaying = false;
 
 /* ============ 歌词数据与面板逻辑 ============ */
@@ -1157,7 +1213,7 @@ function tryBgAutoplay(){
     bgPlaying = true;
     bgVinyl.classList.add('spinning');
     showLyricsTop();
-  }).catch(() => { /* 等待用户交互 */ });
+  }).catch(() => { bgVinyl.title = '[ 音频不可用 ]'; });
 }
 
 function tryAutoPlay(){
@@ -1177,7 +1233,7 @@ bgVinyl.addEventListener('click', () => {
     hideLyricsTop();
   } else {
     bgAudio.play().then(() => { bgPlaying = true; bgVinyl.classList.add('spinning'); showLyricsTop(); })
-      .catch(() => { bgVinyl.title = '播放被阻止，请再试一次'; });
+      .catch(() => { bgVinyl.title = '[ 音频不可用 ] 播放被阻止，请再试一次'; });
   }
 });
 
@@ -1311,10 +1367,10 @@ requestAnimationFrame(() => requestAnimationFrame(() =>
 /* ============ 故障引擎 ============ */
 const GCH = 'アイウエオ01<>/#$%&@=?;'.split('');
 setInterval(() => {
-  if (Math.random() < .75 && glyphs.length < 6)
+  if (Math.random() < (isMobile ? .5 : .75) && glyphs.length < 6) /* MOBILE: 降低乱码闪现频率 */
     glyphs.push({ x: Math.random()*innerWidth, y: Math.random()*innerHeight,
                   ch: GCH[Math.random()*GCH.length|0], ttl: 7 });
-}, 2200);
+}, isMobile ? 3600 : 2200);
 
 function staticBurst(){ /* 故障音效已移除，使用本地 MP3 播放 */ }
 
@@ -1363,7 +1419,7 @@ function glitchLoop(){
       else scramble([coverTitle, badgeEl, eotEl][Math.random()*3|0]);
     }
     glitchLoop();
-  }, 1900 + Math.random()*2100);
+  }, (isMobile ? 3800 : 1900) + Math.random() * (isMobile ? 3200 : 2100)); /* MOBILE: 故障频率降低 */
 }
 
 /* ============ 自动解密（点按 = 跳过引导） ============ */
@@ -1377,7 +1433,7 @@ function decrypt(){
   setTimeout(() => {
     unbox.classList.add('hidden');
     initScenes();
-    burst(innerWidth/2, innerHeight*.4, 150);
+    burst(innerWidth/2, innerHeight*.4, isMobile ? MAX_PARTICLES : 150); /* MOBILE: 彩带数量封顶 */
     glitchLoop();
     tryAutoPlay(); // 解密后尝试自动播放音乐
   }, 300);
@@ -1696,6 +1752,12 @@ const aiExec = document.getElementById('aiExec');
 const aiTags = document.getElementById('aiTags');
 let aiRunning = false;
 
+/* OPTIMIZED: 记住上次关键词（仅提示，不阻止再次输入同一词） */
+try {
+  const lastKw = localStorage.getItem('ai_last_kw');
+  if (lastKw) aiInput.placeholder = '上次你问了「' + lastKw + '」· 这次想聊点别的？';
+} catch(e){}
+
 /* 合并两套字典（同名关键词的文案池合并） */
 const AI_DICT = {};
 [aiResponses, aiResponsesExtra].forEach(dict => {
@@ -1708,15 +1770,20 @@ const AI_DEFAULT = (aiResponses.default || []).concat(aiResponsesExtra.default |
 /* 长关键词优先匹配，避免「累」抢在「疲惫」前面命中 */
 const AI_KEYWORDS = Object.keys(AI_DICT).sort((a, b) => b.length - a.length);
 
-function aiRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+const lastPick = {}; /* OPTIMIZED: 同池随机去重，连续触发不重复同一条 */
+function aiRandom(arr, key){
+  if (arr.length <= 1) return arr[0];
+  let idx;
+  do { idx = Math.floor(Math.random() * arr.length); } while (idx === lastPick[key]);
+  lastPick[key] = idx;
+  return arr[idx];
 }
 
 function pickReply(input) {
   const text = String(input == null ? '' : input).trim();
   if (text && text !== 'default') {
     for (const kw of AI_KEYWORDS) {
-      if (text.indexOf(kw) !== -1) return aiRandom(AI_DICT[kw]); // 随机抽取，绝不固定
+      if (text.indexOf(kw) !== -1) return aiRandom(AI_DICT[kw], kw); /* 随机抽取，绝不固定 */
     }
   }
   /* 关键词匹配不到：从 default 池随机抽 3 条混合输出 */
@@ -1740,18 +1807,22 @@ function typewriterReply(text) {
   return new Promise(resolve => {
     const div = document.createElement('div');
     div.className = 'reply-line';
+    /* OPTIMIZED: 只更新文本节点 + 常驻光标 span，避免每字 innerHTML 重排 */
+    const txtNode = document.createTextNode('');
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    div.appendChild(txtNode);
+    div.appendChild(cursor);
     aiOutput.appendChild(div);
     let i = 0;
-    const cursor = '<span class="cursor"></span>';
     function tick() {
       if (i <= text.length) {
-        div.innerHTML = text.slice(0, i) + cursor;
+        txtNode.nodeValue = text.slice(0, i);
         aiOutput.scrollTop = aiOutput.scrollHeight;
         i++;
-        setTimeout(tick, 50 + Math.random() * 30);
+        setTimeout(tick, 40 + Math.random() * 30);
       } else {
-        div.innerHTML = text;
-        aiOutput.scrollTop = aiOutput.scrollHeight;
+        cursor.remove();
         resolve();
       }
     }
@@ -1785,7 +1856,8 @@ async function runCore(keyword) {
   aiExec.disabled = false;
   aiInput.disabled = false;
   aiTags.querySelectorAll('.tag-btn').forEach(b => b.disabled = false);
-  aiInput.focus();
+  try { localStorage.setItem('ai_last_kw', keyword); } catch(e){} /* OPTIMIZED: 记住上次关键词 */
+  if (!isTouchDevice) aiInput.focus(); /* MOBILE: 触屏不抢焦点弹键盘 */
 }
 
 aiExec.addEventListener('click', () => {
@@ -1818,15 +1890,22 @@ function renderLetter(txt){
 }
 function typeLetter(){
   if (typed) return; typed = true;
+  /* OPTIMIZED: 增量追加文本节点，不再每字整封重渲染（手机省 reflow） */
+  letterBody.innerHTML = '';
+  const txtNode = document.createTextNode('');
+  letterBody.appendChild(txtNode);
+  const caret = document.createElement('span');
+  caret.className = 'caret';
+  letterBody.appendChild(caret);
   let i = 0;
   (function tick(){
-    if (i <= letterText.length){
-      renderLetter(letterText.slice(0, i));
+    if (i < letterText.length){
+      const ch = letterText[i];
+      txtNode.nodeValue += ch;
       i++;
-      const ch = letterText[i-1] || '';
       typeTimer = setTimeout(tick, ch === '\n' ? 130 : (/[。！？，、：—]/.test(ch) ? 150 : 34));
     } else {
-      renderLetter(letterText);
+      caret.remove();
     }
   })();
 }
@@ -1878,7 +1957,10 @@ function initScenes(){
       if (en.target.classList.contains('reveal')) en.target.classList.add('in');
       if (en.target.id === 's2') typeLetter();
       if (en.target.id === 's3') document.getElementById('moon').classList.add('in');
-      if (en.target.id === 's3b') document.getElementById('aiInput').focus();
+      if (en.target.id === 's3b') {
+      /* MOBILE: 触屏设备不自动 focus，避免滚动到 AI 页就弹键盘 */
+      if (!isTouchDevice) document.getElementById('aiInput').focus();
+    }
       if (en.target.id === 's5') showBless();
       io.unobserve(en.target);
     }
@@ -1895,7 +1977,7 @@ flame.addEventListener('click', () => {
   if (blown) return; blown = true;
   flame.classList.add('out');
   smoke.classList.add('rise');
-  burst(flame.getBoundingClientRect().left + 8, flame.getBoundingClientRect().top, 110);
+  burst(flame.getBoundingClientRect().left + 8, flame.getBoundingClientRect().top, isMobile ? 55 : 110); /* MOBILE: 减半 */
   blowTip.classList.add('done');
   blowTip.innerHTML = 'WISH_ENCRYPTED ✓ 愿望已写入 · 十八岁满格运行';
 });
@@ -1988,7 +2070,7 @@ saveLongBtn.addEventListener('click', async () => {
 
     const canvas = await html2canvas(document.body, {
       backgroundColor: '#060712',
-      scale: Math.min(2, window.devicePixelRatio || 1),
+      scale: Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1), /* MOBILE: 降低分辨率防内存溢出 */
       useCORS: true,
       logging: false,
       width: window.innerWidth,
