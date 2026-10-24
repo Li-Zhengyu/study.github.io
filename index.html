@@ -144,22 +144,32 @@ body {
   position:fixed; top:calc(44px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); /* MOBILE: 安全区 */
   z-index:41; pointer-events:none;
   font-family:Consolas, "PingFang SC", monospace;
-  font-size:13px; line-height:1.6; letter-spacing:.06em;
-  color:rgba(255,45,149,.85);
-  text-shadow:0 0 8px rgba(255,45,149,.4); /* OPTIMIZED: 合并为1层 */
+  font-size:12.5px; line-height:1.7; letter-spacing:.04em;
+  color:rgba(255,45,149,.88);
+  text-shadow:0 0 8px rgba(255,45,149,.38); /* OPTIMIZED: 合并为1层 */
   white-space:nowrap; overflow:hidden;
   opacity:0; transition:opacity .5s ease;
-  padding:0 24px; max-width:calc(100vw - 48px);
+  padding:0 16px;
+  max-width:calc(100vw - 32px);
+  mask-image:linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
 }
 .lyrics-top.show { opacity:1; }
 .lyrics-top .line {
   display:inline-block;
-  transition:opacity .3s, color .3s, transform .3s;
+  transition:opacity .25s, color .25s, transform .25s;
+  will-change:transform;
 }
 .lyrics-top .line.active {
   color:#ff7ad9;
-  text-shadow:0 0 12px rgba(255,122,217,.6); /* OPTIMIZED: 合并为1层 */
-  transform:scale(1.02);
+  text-shadow:0 0 10px rgba(255,122,217,.55); /* OPTIMIZED: 合并为1层 */
+}
+.lyrics-top .line.marquee {
+  animation:lyricMarquee var(--marquee-dur, 8s) linear;
+}
+@keyframes lyricMarquee {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(-100%); }
 }
 
 /* ---------- 启动 / 解密遮罩 ---------- */
@@ -1185,6 +1195,8 @@ function hideLyricsTop() {
   stopLyricsSync();
   lyricsLine.textContent = '';
   lyricsLine.dataset.index = '-1';
+  lyricsLine.classList.remove('active', 'marquee');
+  lyricsLine.style.removeProperty('--marquee-dur');
 }
 
 function startLyricsSync() {
@@ -1200,15 +1212,28 @@ function startLyricsSync() {
       } else break;
     }
     if (activeIdx >= 0 && parseInt(lyricsLine.dataset.index) !== activeIdx) {
-      lyricsLine.textContent = activeText;
+      lyricsLine.classList.remove('marquee');
+      // Force reflow to restart animation
+      void lyricsLine.offsetWidth;
+      lyricsLine.textContent = activeText.replace(/\n/g, ' · ');
       lyricsLine.dataset.index = activeIdx;
       lyricsLine.classList.add('active');
-      // Remove active after a short delay
-      setTimeout(() => lyricsLine.classList.remove('active'), 300);
+      // 如果文本过长，启用滚动
+      requestAnimationFrame(() => {
+        const parentW = lyricsTop.clientWidth;
+        const textW = lyricsLine.scrollWidth;
+        if (textW > parentW + 4) {
+          const dur = Math.max(6, textW / 28);
+          lyricsLine.style.setProperty('--marquee-dur', dur + 's');
+          lyricsLine.classList.add('marquee');
+        }
+      });
+      setTimeout(() => lyricsLine.classList.remove('active'), 320);
     }
     // Loop reset
     if (bgAudio.loop && ct > lyricsData[lyricsData.length - 1].t + 5) {
-      lyricsLine.classList.remove('active');
+      lyricsLine.classList.remove('active', 'marquee');
+      lyricsLine.style.removeProperty('--marquee-dur');
     }
   }, 200);
 }
@@ -1218,6 +1243,8 @@ function stopLyricsSync() {
     clearInterval(lyricsSyncInterval);
     lyricsSyncInterval = null;
   }
+  lyricsLine.classList.remove('marquee');
+  lyricsLine.style.removeProperty('--marquee-dur');
 }
 
 function tryBgAutoplay(){
