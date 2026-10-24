@@ -17,8 +17,8 @@ body.paused, body.paused * { animation-play-state:paused !important; }
 
 /* MOBILE: 后台标签页不可见时由 JS 切换 .paused；rAF 循环由 JS cancel */
 
-html { scroll-snap-type: y mandatory; overscroll-behavior-y:none; }
-html, body { height:100%; }
+html { scroll-snap-type: y mandatory; overscroll-behavior-y:none; height:100%; }
+body { min-height:100%; }
 
 /* Performance: reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
@@ -101,6 +101,26 @@ body {
 #hud .tr { top:0; right:0; border-top-width:2px; border-right-width:2px; }
 #hud .bl { bottom:0; left:0; border-bottom-width:2px; border-left-width:2px; }
 #hud .br { bottom:0; right:0; border-bottom-width:2px; border-right-width:2px; }
+
+/* ---------- 右侧页面指示点 ---------- */
+.page-dots {
+  position:fixed; right:14px; top:50%; transform:translateY(-50%); z-index:44;
+  display:flex; flex-direction:column; gap:11px;
+}
+.page-dots button {
+  width:8px; height:8px; padding:0; border-radius:50%;
+  border:1px solid rgba(0,229,255,.4); background:transparent;
+  cursor:pointer; transition:transform .25s, background .25s, box-shadow .25s, border-color .25s;
+}
+.page-dots button:hover { border-color:rgba(0,229,255,.8); }
+.page-dots button.active {
+  background:#00e5ff; border-color:#00e5ff;
+  box-shadow:0 0 10px rgba(0,229,255,.8); transform:scale(1.35);
+}
+@media (max-width:520px) {
+  .page-dots { right:8px; gap:9px; }
+  .page-dots button { width:7px; height:7px; }
+}
 
 /* ---------- 右上角常驻黑胶（背景音乐） ---------- */
 .bg-vinyl {
@@ -321,17 +341,17 @@ main { position:relative; z-index:1; }
 /* ===== 幕通用：HUD 角框卡片 ===== */
 .card {
   width:100%;
-  background:rgba(10,14,30,.92); /* OPTIMIZED: 半透明纯色替代 backdrop-filter，低端安卓省 GPU */
+  background:linear-gradient(180deg, rgba(16,23,46,.94), rgba(8,11,24,.94)); /* OPTIMIZED: 半透明纯色替代 backdrop-filter，低端安卓省 GPU */
   border:1px solid rgba(0,229,255,.2);
-  border-radius:8px;
+  border-radius:10px;
   padding:28px 22px;
   position:relative;
-  box-shadow:0 0 24px rgba(0,229,255,.08);
-  transition:box-shadow .3s ease, border-color .3s ease;
+  box-shadow:0 0 24px rgba(0,229,255,.08), inset 0 1px 0 rgba(255,255,255,.03);
+  transition:box-shadow .3s ease, border-color .3s ease, transform .3s ease;
 }
 .card:hover {
-  box-shadow:0 0 32px rgba(0,229,255,.15);
-  border-color:rgba(0,229,255,.35);
+  box-shadow:0 0 34px rgba(0,229,255,.16), inset 0 1px 0 rgba(255,255,255,.05);
+  border-color:rgba(0,229,255,.38);
 }
 .card::before, .card::after,
 .card .ck::before, .card .ck::after {
@@ -736,17 +756,18 @@ body.glitching main { animation:pageJitter .32s steps(2) both; }
 /* MOBILE: 长图捕获 —— fixed 装饰层铺满整页高度，隐藏纯 UI 控件 */
 body.capturing .hdr-glow,
 body.capturing .grid-bg,
-body.capturing .scanlines,
-body.capturing #stars {
+body.capturing .scanlines {
   position:absolute !important;
   inset:auto !important;
   top:0; left:0;
   width:100%;
   height:var(--cap-h, 100vh);
 }
+body.capturing #stars { display:none !important; } /* 星点画布仅视口大小，撑高会拉伸，直接隐藏 */
 body.capturing #confetti,
 body.capturing #glitchBars,
 body.capturing #hud,
+body.capturing .page-dots,
 body.capturing .bg-vinyl,
 body.capturing .lyrics-top,
 body.capturing .ticker { display:none !important; } /* 走马灯冻结帧会错位，隐藏 */
@@ -768,6 +789,7 @@ body.capturing * { animation-play-state: paused !important; }
 
 <div class="ticker"><div class="ticker-in" id="ticker"></div></div>
 <div id="hud"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+<nav id="pageDots" class="page-dots" aria-label="页面导航"></nav>
 
 <!-- 右上角常驻黑胶：背景音乐控制 -->
 <div id="bgVinyl" class="bg-vinyl" role="button" tabindex="0" aria-label="播放或暂停背景音乐 Dream It Possible" title="点击播放/暂停背景音乐 Dream It Possible (Delacey)">
@@ -1964,37 +1986,24 @@ function showBless(){
     setTimeout(() => w.classList.add('show'), i * 260));
 }
 
-/* ============ 磁吸翻页：仅桌面端启用，移动端依赖原生 scroll-snap ============ */
+/* ============ 翻页：完全交给原生 CSS scroll-snap（流畅、不会滑穿多页） ============ */
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-if (!isTouchDevice) {
-  let scrollLock = false;
-  function snapToNearestScene(){
-    if (scrollLock) return;
-    const scenes = document.querySelectorAll('.scene');
-    let minDist = Infinity;
-    let target = null;
-    const viewportCenter = window.innerHeight / 2 + window.scrollY;
-    scenes.forEach(s => {
-      const rect = s.getBoundingClientRect();
-      const sceneCenter = rect.top + rect.height / 2 + window.scrollY;
-      const dist = Math.abs(sceneCenter - viewportCenter);
-      if (dist < minDist) { minDist = dist; target = s; }
-    });
-    if (target) {
-      scrollLock = true;
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => { scrollLock = false; }, 800);
-    }
-  }
-  let wheelTimer = null;
-  window.addEventListener('wheel', e => {
-    if (e.deltaY === 0) return;
-    clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => snapToNearestScene(), 200);
-  }, { passive: true });
-}
 
 function initScenes(){
+  const scenes = Array.from(document.querySelectorAll('.scene'));
+  /* 右侧页面指示点 */
+  const dotsNav = document.getElementById('pageDots');
+  const dots = scenes.map((s, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', '第 ' + (i + 1) + ' 页');
+    b.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    dotsNav.appendChild(b);
+    return b;
+  });
+  const setActiveDot = idx => dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  setActiveDot(0);
+
   const io = new IntersectionObserver(entries => {
     for (const en of entries){
       if (!en.isIntersecting) continue;
@@ -2010,7 +2019,17 @@ function initScenes(){
       io.unobserve(en.target);
     }
   }, { threshold: .5 });
-  document.querySelectorAll('.scene').forEach(s => io.observe(s));
+  scenes.forEach(s => io.observe(s));
+
+  /* 指示点：持续跟随当前页 */
+  const ioDot = new IntersectionObserver(entries => {
+    let best = null;
+    for (const en of entries){
+      if (en.isIntersecting && (!best || en.intersectionRatio > best.intersectionRatio)) best = en;
+    }
+    if (best) setActiveDot(scenes.indexOf(best.target));
+  }, { threshold: [0.3, 0.6, 0.95] });
+  scenes.forEach(s => ioDot.observe(s));
 }
 
 /* ============ 吹蜡烛 ============ */
@@ -2040,11 +2059,18 @@ document.getElementById('topBtn').addEventListener('click', () => {
 const saveLongBtn = document.getElementById('saveLongBtn');
 let savingLong = false;
 
-function restoreAfterCapture(mirror, aiField){
-  if (mirror) { mirror.remove(); }
-  if (aiField) { aiField.style.display = ''; }
+function restoreAfterCapture(mirror, aiField, prevScrollY, sceneHeights){
+  if (mirror && mirror.parentNode) mirror.remove();
+  if (aiField) aiField.style.display = '';
   document.body.classList.remove('capturing');
   document.documentElement.style.removeProperty('--cap-h');
+  document.documentElement.style.removeProperty('height');
+  document.body.style.removeProperty('min-height');
+  if (sceneHeights) sceneHeights.forEach(([el, mh, hh]) => {
+    el.style.minHeight = mh;
+    el.style.height = hh;
+  });
+  window.scrollTo(0, prevScrollY || 0);
   initBg();
 }
 
@@ -2057,37 +2083,24 @@ saveLongBtn.addEventListener('click', async () => {
   let mirror = null;
   const aiField = document.getElementById('aiInput');
   const prevScrollY = window.scrollY;
-  let cloneWrap = null;
+  const sceneHeights = [];
+  let done = false;
 
   try {
     if (typeof html2canvas === 'undefined') throw new Error('html2canvas not loaded');
 
-    /* 尚未触发的动画内容先完整渲染，保证长图齐全 */
+    /* 尚未触发的动画内容先完整渲染 */
     if (!typed) {
       renderLetter(letterText);
       const c = letterBody.querySelector('.caret');
       if (c) c.remove();
     }
     document.querySelectorAll('#bless .wish').forEach(w => w.classList.add('show'));
-    const moonEl = document.getElementById('moon');
-    if (moonEl) moonEl.classList.add('in');
+    document.getElementById('moon')?.classList.add('in');
+    /* 把还没滚动到、仍隐藏的 reveal 元素一次性显示出来，保证长图没有空白段落 */
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
 
-    /* 回到顶部，稳定视图 */
-    window.scrollTo(0, 0);
-    await new Promise(r => setTimeout(r, 350));
-
-    const docH = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.offsetHeight
-    );
-    const vw = window.innerWidth;
-
-    document.documentElement.style.setProperty('--cap-h', docH + 'px');
-    document.body.classList.add('capturing');
-
-    /* AI 输入框当前值 → 生成可捕获的镜像节点（input 的 value 无法被可靠渲染） */
+    /* AI 输入框值 → 可捕获镜像节点 */
     if (aiField && aiField.value) {
       mirror = document.createElement('div');
       mirror.className = 'input-field cap-mirror';
@@ -2096,74 +2109,52 @@ saveLongBtn.addEventListener('click', async () => {
       aiField.parentNode.insertBefore(mirror, aiField);
     }
 
-    await new Promise(r => setTimeout(r, 160));
+    window.scrollTo(0, 0);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-    /* 直接渲染整页：克隆整个 body 到离屏容器，强制全量可见后用 html2canvas 渲染整片 */
-    cloneWrap = document.createElement('div');
-    cloneWrap.style.cssText = [
-      'position:absolute',
-      'left:-20000px',
-      'top:0',
-      'width:' + vw + 'px',
-      'height:' + docH + 'px',
-      'overflow:visible',
-      'pointer-events:none',
-      'background:#060712',
-      'z-index:-9999'
-    ].join(';');
-
-    const cloneBody = document.body.cloneNode(true);
-    /* 克隆内去掉交互元素（避免误触发） */
-    cloneBody.querySelectorAll('#unbox, #bgVinyl, #saveLongBtn, #topBtn, #playBtn, #vinyl, #flame').forEach(el => {
-      el.style.pointerEvents = 'none';
+    /* 关键修复：临时解除 body/html 的 100% 高度限制，并把 100svh 场景钉成真实视口 px，
+       让整页自然撑高；否则 html2canvas 只截得到第一屏 */
+    document.body.classList.add('capturing');
+    document.documentElement.style.height = 'auto';
+    document.body.style.minHeight = '0';
+    document.querySelectorAll('.scene').forEach(s => {
+      sceneHeights.push([s, s.style.minHeight, s.style.height]);
+      s.style.minHeight = vh + 'px';
+      s.style.height = 'auto';
     });
-    /* 强制所有 reveal 显示 */
-    cloneBody.querySelectorAll('.reveal').forEach(el => {
-      el.classList.add('in');
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-      el.style.transition = 'none';
-    });
-    cloneBody.querySelectorAll('#bless .wish').forEach(w => w.classList.add('show'));
-    const cloneMoon = cloneBody.querySelector('#moon');
-    if (cloneMoon) cloneMoon.classList.add('in');
-    /* 去掉滚动吸附，按普通流排布 */
-    cloneBody.style.scrollSnapType = 'none';
-    cloneBody.classList.add('capturing');
+    document.documentElement.style.setProperty('--cap-h', '0px');
 
-    cloneWrap.appendChild(cloneBody);
-    document.body.appendChild(cloneWrap);
+    await new Promise(r => setTimeout(r, 180));
+    const fullH = Math.ceil(Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    ));
+    document.documentElement.style.setProperty('--cap-h', fullH + 'px');
+    await new Promise(r => setTimeout(r, 120));
 
-    /* 等待克隆节点布局稳定 */
-    await new Promise(r => setTimeout(r, 220));
+    let scale = Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1);
+    const MAXCANVAS = 16000;
+    if (fullH * scale > MAXCANVAS) scale = MAXCANVAS / fullH;
+    if (vw * scale > MAXCANVAS) scale = Math.min(scale, MAXCANVAS / vw);
+    scale = Math.max(scale, 1);
 
-    let scale = Math.min(isMobile ? 1.8 : 2.0, window.devicePixelRatio || 1);
-    const maxCanvas = 16384;
-    const targetW = Math.floor(vw * scale);
-    const targetH = Math.floor(docH * scale);
-    if (targetH > maxCanvas) scale = maxCanvas / docH;
-    if (targetW > maxCanvas) scale = Math.min(scale, maxCanvas / vw);
-
-    const canvas = await html2canvas(cloneBody, {
+    const canvas = await html2canvas(document.body, {
       backgroundColor: '#060712',
-      scale: Math.max(1, scale),
+      scale,
       useCORS: true,
       logging: false,
       allowTaint: false,
-      scrollX: 0,
-      scrollY: 0,
+      scrollX: 0, scrollY: 0,
+      x: 0, y: 0,
       width: vw,
-      height: docH,
+      height: fullH,
       windowWidth: vw,
-      windowHeight: docH,
-      x: 0,
-      y: 0
+      windowHeight: fullH
     });
 
-    if (cloneWrap && cloneWrap.parentNode) cloneWrap.parentNode.removeChild(cloneWrap);
-    cloneWrap = null;
-    restoreAfterCapture(mirror, aiField);
-    window.scrollTo(0, prevScrollY);
+    restoreAfterCapture(mirror, aiField, prevScrollY, sceneHeights);
+    done = true;
 
     const a = document.createElement('a');
     a.download = '致' + (toName === '朋友' ? '你' : toName) + '的十八岁_长图.png';
@@ -2173,10 +2164,7 @@ saveLongBtn.addEventListener('click', async () => {
     a.remove();
     saveLongBtn.textContent = '✓ SAVED · 长图已保存';
   } catch (err) {
-    if (cloneWrap && cloneWrap.parentNode) cloneWrap.parentNode.removeChild(cloneWrap);
-    cloneWrap = null;
-    restoreAfterCapture(mirror, aiField);
-    window.scrollTo(0, prevScrollY);
+    if (!done) restoreAfterCapture(mirror, aiField, prevScrollY, sceneHeights);
     saveLongBtn.textContent = '✕ 保存失败，请重试';
   }
   setTimeout(() => { saveLongBtn.textContent = origLabel; savingLong = false; }, 2400);
