@@ -741,7 +741,8 @@ body.capturing .bg-vinyl,
 body.capturing .lyrics-top,
 body.capturing .ticker { display:none !important; } /* 走马灯冻结帧会错位，隐藏 */
 /* 未触发的滚动浮现动画强制完整显示——否则 .reveal 元素 opacity:0，长图下半部分全空白 */
-body.capturing .reveal { opacity:1 !important; transform:none !important; }
+body.capturing .reveal { opacity:1 !important; transform:none !important; transition:none !important; }
+body.capturing * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior:auto; }
 }
@@ -2012,34 +2013,9 @@ document.getElementById('topBtn').addEventListener('click', () => {
 const saveLongBtn = document.getElementById('saveLongBtn');
 let savingLong = false;
 
-/* 捕获专用：把星点/字符雨一次性绘制到整页高度 */
-function paintStarsForCapture(docH){
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  sc.width = Math.floor(innerWidth * dpr);
-  sc.height = Math.floor(docH * dpr);
-  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  sctx.clearRect(0, 0, innerWidth, docH);
-  sctx.font = '11px Consolas, monospace';
-  const ratio = docH / Math.max(1, innerHeight);
-  const nStars = Math.floor(STAR_COUNT * ratio);
-  for (let i = 0; i < nStars; i++){
-    sctx.globalAlpha = .15 + .5 * Math.random();
-    sctx.fillStyle = '#bfe8ff';
-    sctx.beginPath();
-    sctx.arc(Math.random() * innerWidth, Math.random() * docH, Math.random() * 1.3 + .3, 0, 7);
-    sctx.fill();
-  }
-  const nBits = Math.floor(BIT_COUNT * ratio);
-  for (let i = 0; i < nBits; i++){
-    sctx.globalAlpha = .12;
-    sctx.fillStyle = Math.random() < .75 ? '#00e5ff' : '#ff2d95';
-    sctx.fillText(rnd(MCH), Math.random() * innerWidth, Math.random() * docH);
-  }
-  sctx.globalAlpha = 1;
-}
-
 function restoreAfterCapture(mirror, aiField){
-  if (mirror) { mirror.remove(); aiField.style.display = ''; }
+  if (mirror) { mirror.remove(); }
+  if (aiField) { aiField.style.display = ''; }
   document.body.classList.remove('capturing');
   document.documentElement.style.removeProperty('--cap-h');
   initBg();
@@ -2053,6 +2029,9 @@ saveLongBtn.addEventListener('click', async () => {
 
   let mirror = null;
   const aiField = document.getElementById('aiInput');
+  const prevScrollY = window.scrollY;
+  let cloneWrap = null;
+
   try {
     if (typeof html2canvas === 'undefined') throw new Error('html2canvas not loaded');
 
@@ -2063,13 +2042,21 @@ saveLongBtn.addEventListener('click', async () => {
       if (c) c.remove();
     }
     document.querySelectorAll('#bless .wish').forEach(w => w.classList.add('show'));
-    document.getElementById('moon').classList.add('in');
+    const moonEl = document.getElementById('moon');
+    if (moonEl) moonEl.classList.add('in');
 
-    /* 回到顶部，让 fixed 装饰层归位 */
+    /* 回到顶部，稳定视图 */
     window.scrollTo(0, 0);
-    await new Promise(r => setTimeout(r, 380));
+    await new Promise(r => setTimeout(r, 350));
 
-    const docH = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    const docH = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight
+    );
+    const vw = window.innerWidth;
+
     document.documentElement.style.setProperty('--cap-h', docH + 'px');
     document.body.classList.add('capturing');
 
@@ -2082,33 +2069,74 @@ saveLongBtn.addEventListener('click', async () => {
       aiField.parentNode.insertBefore(mirror, aiField);
     }
 
-    paintStarsForCapture(docH);
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 160));
 
-    /* 分块渲染：整页一次渲染在手机上易因画布边长超限而失败/空白，
-       且 html2canvas 对远超视口的区域渲染不完整。切段渲染后拼接。 */
-    let scale = Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1);
-    if (docH * scale > 8000) scale = 8000 / docH; /* 画布边长安全上限，兼容旧机型 */
-    const chunkH = Math.max(400, Math.floor(3000 / scale)); /* 每段 CSS 高度，渲染后 ≤3000px */
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.floor(window.innerWidth * scale);
-    canvas.height = Math.floor(docH * scale);
-    const cctx = canvas.getContext('2d');
-    for (let y = 0; y < docH; y += chunkH) {
-      const h = Math.min(chunkH, docH - y);
-      const seg = await html2canvas(document.body, {
-        backgroundColor: '#060712',
-        scale,
-        useCORS: true,
-        logging: false,
-        x: 0, y, width: window.innerWidth, height: h,
-        windowWidth: window.innerWidth,
-        windowHeight: docH
-      });
-      cctx.drawImage(seg, 0, Math.floor(y * scale));
-    }
+    /* 直接渲染整页：克隆整个 body 到离屏容器，强制全量可见后用 html2canvas 渲染整片 */
+    cloneWrap = document.createElement('div');
+    cloneWrap.style.cssText = [
+      'position:absolute',
+      'left:-20000px',
+      'top:0',
+      'width:' + vw + 'px',
+      'height:' + docH + 'px',
+      'overflow:visible',
+      'pointer-events:none',
+      'background:#060712',
+      'z-index:-9999'
+    ].join(';');
 
+    const cloneBody = document.body.cloneNode(true);
+    /* 克隆内去掉交互元素（避免误触发） */
+    cloneBody.querySelectorAll('#unbox, #bgVinyl, #saveLongBtn, #topBtn, #playBtn, #vinyl, #flame').forEach(el => {
+      el.style.pointerEvents = 'none';
+    });
+    /* 强制所有 reveal 显示 */
+    cloneBody.querySelectorAll('.reveal').forEach(el => {
+      el.classList.add('in');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.style.transition = 'none';
+    });
+    cloneBody.querySelectorAll('#bless .wish').forEach(w => w.classList.add('show'));
+    const cloneMoon = cloneBody.querySelector('#moon');
+    if (cloneMoon) cloneMoon.classList.add('in');
+    /* 去掉滚动吸附，按普通流排布 */
+    cloneBody.style.scrollSnapType = 'none';
+    cloneBody.classList.add('capturing');
+
+    cloneWrap.appendChild(cloneBody);
+    document.body.appendChild(cloneWrap);
+
+    /* 等待克隆节点布局稳定 */
+    await new Promise(r => setTimeout(r, 220));
+
+    let scale = Math.min(isMobile ? 1.8 : 2.0, window.devicePixelRatio || 1);
+    const maxCanvas = 16384;
+    const targetW = Math.floor(vw * scale);
+    const targetH = Math.floor(docH * scale);
+    if (targetH > maxCanvas) scale = maxCanvas / docH;
+    if (targetW > maxCanvas) scale = Math.min(scale, maxCanvas / vw);
+
+    const canvas = await html2canvas(cloneBody, {
+      backgroundColor: '#060712',
+      scale: Math.max(1, scale),
+      useCORS: true,
+      logging: false,
+      allowTaint: false,
+      scrollX: 0,
+      scrollY: 0,
+      width: vw,
+      height: docH,
+      windowWidth: vw,
+      windowHeight: docH,
+      x: 0,
+      y: 0
+    });
+
+    if (cloneWrap && cloneWrap.parentNode) cloneWrap.parentNode.removeChild(cloneWrap);
+    cloneWrap = null;
     restoreAfterCapture(mirror, aiField);
+    window.scrollTo(0, prevScrollY);
 
     const a = document.createElement('a');
     a.download = '致' + (toName === '朋友' ? '你' : toName) + '的十八岁_长图.png';
@@ -2118,7 +2146,10 @@ saveLongBtn.addEventListener('click', async () => {
     a.remove();
     saveLongBtn.textContent = '✓ SAVED · 长图已保存';
   } catch (err) {
+    if (cloneWrap && cloneWrap.parentNode) cloneWrap.parentNode.removeChild(cloneWrap);
+    cloneWrap = null;
     restoreAfterCapture(mirror, aiField);
+    window.scrollTo(0, prevScrollY);
     saveLongBtn.textContent = '✕ 保存失败，请重试';
   }
   setTimeout(() => { saveLongBtn.textContent = origLabel; savingLong = false; }, 2400);
