@@ -246,7 +246,8 @@ body {
 main { position:relative; z-index:1; }
 
 .scene {
-  min-height:100svh;
+  min-height:100vh;   /* 旧版 iOS/安卓回退 */
+  min-height:100svh;  /* 现代浏览器：避开手机地址栏抖动 */
   scroll-snap-align:start;
   scroll-snap-stop:always; /* 每次滑动最多翻一页：强制停在当前 snap 点，防止快速滑穿好几页 */
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -2134,10 +2135,14 @@ saveLongBtn.addEventListener('click', async () => {
     await new Promise(r => setTimeout(r, 120));
 
     let scale = Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1);
-    const MAXCANVAS = 16000;
-    if (fullH * scale > MAXCANVAS) scale = MAXCANVAS / fullH;
-    if (vw * scale > MAXCANVAS) scale = Math.min(scale, MAXCANVAS / vw);
-    scale = Math.max(scale, 1);
+    const MAXDIM = 16000;
+    if (fullH * scale > MAXDIM) scale = MAXDIM / fullH;
+    if (vw * scale > MAXDIM) scale = Math.min(scale, MAXDIM / vw);
+    /* iOS Safari 画布面积上限(约16.7M像素)，留余量避免生成白图/失败 */
+    const MAXAREA = isMobile ? 9e6 : 4e7;
+    const areaScale = Math.sqrt(MAXAREA / Math.max(1, vw * fullH));
+    if (scale > areaScale) scale = areaScale;
+    scale = Math.max(scale, 0.5);
 
     const canvas = await html2canvas(document.body, {
       backgroundColor: '#060712',
@@ -2156,9 +2161,18 @@ saveLongBtn.addEventListener('click', async () => {
     restoreAfterCapture(mirror, aiField, prevScrollY, sceneHeights);
     done = true;
 
+    /* iOS 低内存兜底：PNG 失败则退回 JPEG */
+    let dataUrl = '';
+    try { dataUrl = canvas.toDataURL('image/png'); } catch (e) { dataUrl = ''; }
+    let ext = 'png';
+    if (!dataUrl || dataUrl.length < 200) {
+      try { dataUrl = canvas.toDataURL('image/jpeg', 0.92); ext = 'jpg'; } catch (e) { dataUrl = ''; }
+    }
+    if (!dataUrl) throw new Error('canvas export failed');
+
     const a = document.createElement('a');
-    a.download = '致' + (toName === '朋友' ? '你' : toName) + '的十八岁_长图.png';
-    a.href = canvas.toDataURL('image/png');
+    a.download = '致' + (toName === '朋友' ? '你' : toName) + '的十八岁_长图.' + ext;
+    a.href = dataUrl;
     document.body.appendChild(a);
     a.click();
     a.remove();
